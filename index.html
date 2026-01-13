@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleeping Beauty Mechanism Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <!-- Password Modal -->
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <h2>Sleeping Beauty Mechanism Viewer</h2>
+            <p>This viewer contains research data for qualitative analysis.</p>
+            <p>Please enter the password to access:</p>
+            <input type="password" id="password-input" placeholder="Enter password" autofocus>
+            <button id="submit-password" onclick="submitPassword()">Access</button>
+            <p id="password-error" class="error-message"></p>
+        </div>
+    </div>
+
+    <!-- Main App (hidden until authenticated) -->
+    <div id="main-app" class="hidden">
+        <!-- Header -->
+        <header>
+            <h1>Sleeping Beauty Mechanism Viewer</h1>
+            <p class="subtitle">AsthmaUK Online Health Community - Qualitative Research Tool</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="overview">Overview</button>
+            <button class="tab-btn" data-tab="cases">Case Browser</button>
+            <button class="tab-btn" data-tab="guide">Field Guide</button>
+        </nav>
+
+        <!-- Tab Content -->
+        <main>
+            <!-- Overview Tab -->
+            <section id="overview" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-cases">-</div>
+                        <div class="stat-label">Total Cases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avg-beauty">-</div>
+                        <div class="stat-label">Avg Beauty (B)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avg-peak">-</div>
+                        <div class="stat-label">Avg Peak Day</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="with-prince">-</div>
+                        <div class="stat-label">With Prince Post</div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Mechanism Distribution</h3>
+                        <canvas id="mechanism-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Category Distribution</h3>
+                        <canvas id="category-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="case-list">
+                    <h3>All Cases</h3>
+                    <table id="overview-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Title</th>
+                                <th>B</th>
+                                <th>Peak Day</th>
+                                <th>Category</th>
+                                <th>Mechanism</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Case Browser Tab -->
+            <section id="cases" class="tab-content">
+                <div class="case-navigation">
+                    <select id="case-selector">
+                        <option value="">Select a case...</option>
+                    </select>
+                    <div class="nav-buttons">
+                        <button onclick="prevCase()">Previous</button>
+                        <button onclick="nextCase()">Next</button>
+                    </div>
+                </div>
+
+                <div id="case-detail" class="case-detail">
+                    <p class="placeholder-text">Select a case from the dropdown above to view details.</p>
+                </div>
+            </section>
+
+            <!-- Field Guide Tab -->
+            <section id="guide" class="tab-content">
+                <h2>Field Guide</h2>
+
+                <div class="guide-section">
+                    <h3>What is a "Sleeping Beauty"?</h3>
+                    <p>A Sleeping Beauty (SB) post is one that receives delayed recognition - it remains "dormant" for a period before suddenly gaining attention (the "awakening"). This phenomenon is measured using the <strong>Beauty Coefficient (B)</strong>.</p>
+                </div>
+
+                <div class="guide-section">
+                    <h3>Awakening Mechanisms</h3>
+                    <table class="guide-table">
+                        <tr>
+                            <th>Mechanism</th>
+                            <th>Description</th>
+                        </tr>
+                        <tr>
+                            <td>Author Series Continuation</td>
+                            <td>The original author posts a follow-up, drawing attention back to the original post</td>
+                        </tr>
+                        <tr>
+                            <td>New User Discovery</td>
+                            <td>A new community member discovers and responds to the old post</td>
+                        </tr>
+                        <tr>
+                            <td>Author Self-Promotion</td>
+                            <td>Author actively references their old post in other discussions</td>
+                        </tr>
+                        <tr>
+                            <td>Experiential Knowledge Transfer</td>
+                            <td>Someone shares relevant personal experience that revives discussion</td>
+                        </tr>
+                        <tr>
+                            <td>External Event Trigger</td>
+                            <td>Real-world events (e.g., COVID) make old content suddenly relevant</td>
+                        </tr>
+                        <tr>
+                            <td>Community Memory</td>
+                            <td>Long-term members recall and reference valuable old content</td>
+                        </tr>
+                        <tr>
+                            <td>Community Reference</td>
+                            <td>Post becomes referenced as a community resource</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="guide-section">
+                    <h3>Category Codes</h3>
+                    <table class="guide-table">
+                        <tr>
+                            <th>Code</th>
+                            <th>Meaning</th>
+                        </tr>
+                        <tr>
+                            <td>SIS_SES</td>
+                            <td>Seeking Information Support & Seeking Emotional Support</td>
+                        </tr>
+                        <tr>
+                            <td>SIS_only</td>
+                            <td>Seeking Information Support only</td>
+                        </tr>
+                        <tr>
+                            <td>SES_only</td>
+                            <td>Seeking Emotional Support only</td>
+                        </tr>
+                        <tr>
+                            <td>Providing</td>
+                            <td>Providing support/information to others</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="guide-section">
+                    <h3>Confidence Levels</h3>
+                    <ul>
+                        <li><strong>High:</strong> Clear evidence supports the mechanism assignment</li>
+                        <li><strong>Medium:</strong> Likely mechanism but some ambiguity</li>
+                        <li><strong>Low:</strong> Uncertain, needs further investigation</li>
+                    </ul>
+                </div>
+
+                <div class="guide-section">
+                    <h3>How to Use This Viewer</h3>
+                    <ol>
+                        <li>Review the <strong>Overview</strong> tab for summary statistics</li>
+                        <li>Use <strong>Case Browser</strong> to examine individual cases in detail</li>
+                        <li>For each case, review:
+                            <ul>
+                                <li>The original post content</li>
+                                <li>Comments (peak period highlighted in yellow)</li>
+                                <li>AI-inferred mechanism and evidence</li>
+                                <li>Awakening Analysis (author posts, new commenters, their prior activity)</li>
+                            </ul>
+                        </li>
+                        <li>Use the "Where Did They Come From?" section to trace how new commenters discovered the post</li>
+                    </ol>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <p>Sleeping Beauty Analysis - AsthmaUK Lurking Behavior Research</p>
+            <p>Data has been anonymized for research purposes</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

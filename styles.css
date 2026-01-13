@@ -1,0 +1,937 @@
+/* ==================== Base Styles ==================== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f7fa;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ==================== Password Modal ==================== */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h2 {
+    color: #4472C4;
+    margin-bottom: 15px;
+}
+
+.modal-content p {
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    margin: 15px 0;
+    transition: border-color 0.3s;
+}
+
+.modal-content input:focus {
+    outline: none;
+    border-color: #4472C4;
+}
+
+.modal-content button {
+    width: 100%;
+    padding: 12px;
+    background: #4472C4;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.modal-content button:hover {
+    background: #365fa3;
+}
+
+.error-message {
+    color: #dc3545;
+    margin-top: 10px;
+    min-height: 20px;
+}
+
+/* ==================== Header ==================== */
+
+header {
+    background: linear-gradient(135deg, #4472C4, #2c5282);
+    color: white;
+    padding: 25px 40px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+header .subtitle {
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+/* ==================== Navigation Tabs ==================== */
+
+.tabs {
+    display: flex;
+    background: white;
+    border-bottom: 1px solid #ddd;
+    padding: 0 40px;
+}
+
+.tab-btn {
+    padding: 15px 25px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 15px;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s;
+}
+
+.tab-btn:hover {
+    color: #4472C4;
+}
+
+.tab-btn.active {
+    color: #4472C4;
+    border-bottom-color: #4472C4;
+    font-weight: 600;
+}
+
+/* ==================== Main Content ==================== */
+
+main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 40px;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ==================== Overview Tab ==================== */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: #4472C4;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.chart-container {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.chart-container h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.case-list {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.case-list h3 {
+    margin-bottom: 15px;
+}
+
+#overview-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#overview-table th,
+#overview-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+#overview-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #555;
+}
+
+#overview-table tr:hover {
+    background: #f8f9fa;
+}
+
+.title-cell {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mechanism-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #e8f0fe;
+    color: #4472C4;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+#overview-table button {
+    padding: 6px 12px;
+    background: #4472C4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+#overview-table button:hover {
+    background: #365fa3;
+}
+
+/* ==================== Case Browser Tab ==================== */
+
+.case-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+}
+
+#case-selector {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 400px;
+}
+
+.nav-buttons button {
+    padding: 10px 20px;
+    margin-left: 10px;
+    background: #f0f0f0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.nav-buttons button:hover {
+    background: #e0e0e0;
+}
+
+.placeholder-text {
+    text-align: center;
+    color: #888;
+    padding: 60px;
+    background: white;
+    border-radius: 12px;
+}
+
+/* Case Detail */
+
+.case-detail {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.case-header {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.case-meta {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.rank-badge {
+    background: #4472C4;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.b-value, .peak-day {
+    background: #f0f0f0;
+    padding: 4px 12px;
+    border-radius: 4px;
+}
+
+.category-tag {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 4px 12px;
+    border-radius: 4px;
+}
+
+.case-header h2 {
+    font-size: 22px;
+    color: #333;
+}
+
+/* Mechanism Section */
+
+.mechanism-section {
+    margin-bottom: 25px;
+}
+
+.mechanism-section h3 {
+    margin-bottom: 15px;
+}
+
+.mechanism-card {
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.mechanism-card.high {
+    background: #d4edda;
+    border-color: #28a745;
+}
+
+.mechanism-card.medium {
+    background: #fff3cd;
+    border-color: #ffc107;
+}
+
+.mechanism-card.low {
+    background: #f8d7da;
+    border-color: #dc3545;
+}
+
+.mechanism-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.mechanism-confidence {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.mechanism-evidence {
+    font-style: italic;
+    color: #555;
+}
+
+/* Timeline */
+
+.timeline-section {
+    margin-bottom: 25px;
+}
+
+.timeline-section h3 {
+    margin-bottom: 15px;
+}
+
+/* Content Sections */
+
+.content-section {
+    margin-bottom: 20px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
+
+.content-section summary {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    cursor: pointer;
+    font-weight: 600;
+    border-radius: 8px 8px 0 0;
+}
+
+.content-section[open] summary {
+    border-bottom: 1px solid #eee;
+}
+
+.content-section > div {
+    padding: 20px;
+}
+
+/* Post Content */
+
+.post-content {
+    background: #f8f9fa;
+    border-left: 4px solid #4472C4;
+    padding: 20px;
+    border-radius: 0 8px 8px 0;
+}
+
+.post-meta {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.post-body {
+    color: #333;
+    line-height: 1.7;
+}
+
+/* Comments */
+
+.comments-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.comment-box {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 12px;
+}
+
+.comment-box.peak-comment {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.comment-header {
+    font-size: 13px;
+    color: #555;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.comment-body {
+    color: #444;
+    line-height: 1.6;
+}
+
+.peak-badge {
+    background: #ffc107;
+    color: #856404;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-left: 8px;
+}
+
+
+.link-badge {
+    background: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-left: 8px;
+    font-weight: 600;
+}
+
+.self-promo-card {
+    border-left: 4px solid #28a745 !important;
+    background: #d4edda !important;
+}
+
+.more-items {
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+/* Prince Post */
+
+.prince-post {
+    background: #e8f4f8;
+    border-left: 4px solid #17a2b8;
+    padding: 20px;
+    border-radius: 0 8px 8px 0;
+}
+
+.prince-title {
+    font-weight: 600;
+    color: #0c5460;
+    margin-bottom: 10px;
+}
+
+.prince-body {
+    color: #333;
+}
+
+.self-promo-evidence {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed #17a2b8;
+}
+
+.self-promo-evidence h4 {
+    color: #155724;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+/* Exploration Content */
+
+.exploration-content {
+    padding: 10px !important;
+}
+
+.exploration-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.exploration-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.exploration-section h4 {
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.section-desc {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 15px;
+}
+
+.no-data {
+    color: #888;
+    font-style: italic;
+}
+
+.warning-text {
+    background: #fff3cd;
+    padding: 10px 15px;
+    border-radius: 6px;
+    color: #856404;
+    margin-top: 10px;
+}
+
+/* Related Posts */
+
+.related-post {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.related-header {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.related-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.related-preview {
+    font-size: 14px;
+    color: #555;
+}
+
+/* User Activity */
+
+.user-activity {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.user-activity h5 {
+    color: #4472C4;
+    margin-bottom: 15px;
+}
+
+.activity-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.activity-col strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.created-post, .participated-thread {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+.created-title, .thread-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.created-meta, .thread-meta {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.created-preview {
+    font-size: 13px;
+    color: #555;
+}
+
+.thread-comment {
+    font-size: 13px;
+    color: #555;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+/* ==================== Field Guide Tab ==================== */
+
+#guide {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+}
+
+#guide h2 {
+    margin-bottom: 25px;
+    color: #333;
+}
+
+.guide-section {
+    margin-bottom: 30px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid #eee;
+}
+
+.guide-section:last-child {
+    border-bottom: none;
+}
+
+.guide-section h3 {
+    color: #4472C4;
+    margin-bottom: 15px;
+}
+
+.guide-section p {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.guide-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.guide-table th,
+.guide-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.guide-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.guide-table tr:hover {
+    background: #f8f9fa;
+}
+
+.guide-section ul, .guide-section ol {
+    margin-left: 25px;
+    color: #555;
+}
+
+.guide-section li {
+    margin-bottom: 8px;
+}
+
+.guide-section ul ul {
+    margin-top: 8px;
+}
+
+/* ==================== Mechanism Chain ==================== */
+
+.mechanism-chain {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.mechanism-chain h4 {
+    margin: 0 0 15px 0;
+    color: #495057;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chain-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.chain-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    width: 100%;
+    max-width: 450px;
+    transition: all 0.2s;
+}
+
+.chain-step:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.chain-step.external-event {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+
+.chain-step.dormancy {
+    border-color: #6c757d;
+    background: #f8f9fa;
+}
+
+.chain-step.prince {
+    border-color: #17a2b8;
+    background: #e8f4f8;
+}
+
+.chain-step.discovery {
+    border-color: #28a745;
+    background: #d4edda;
+}
+
+.chain-step.self-promo {
+    border-color: #fd7e14;
+    background: #fff3e0;
+}
+
+.chain-step.peak {
+    border-color: #ffc107;
+    background: #fff8e1;
+}
+
+.step-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #4472C4;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.chain-step.external-event .step-icon { background: #dc3545; }
+.chain-step.dormancy .step-icon { background: #6c757d; }
+.chain-step.prince .step-icon { background: #17a2b8; }
+.chain-step.discovery .step-icon { background: #28a745; }
+.chain-step.self-promo .step-icon { background: #fd7e14; }
+.chain-step.peak .step-icon { background: #ffc107; color: #333; }
+
+.step-content {
+    flex: 1;
+}
+
+.step-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.step-desc {
+    font-size: 13px;
+    color: #666;
+}
+
+.chain-arrow {
+    font-size: 20px;
+    color: #adb5bd;
+    line-height: 1;
+}
+
+.chain-insight {
+    margin-top: 15px;
+    padding: 12px 15px;
+    background: #e7f3ff;
+    border-left: 4px solid #4472C4;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: #333;
+}
+
+.chain-insight strong {
+    color: #4472C4;
+}
+
+/* ==================== Footer ==================== */
+
+footer {
+    text-align: center;
+    padding: 25px;
+    background: white;
+    border-top: 1px solid #eee;
+    margin-top: 40px;
+}
+
+footer p {
+    color: #888;
+    font-size: 13px;
+    margin: 5px 0;
+}
+
+/* ==================== Responsive ==================== */
+
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .activity-columns {
+        grid-template-columns: 1fr;
+    }
+
+    #case-selector {
+        min-width: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    main {
+        padding: 20px;
+    }
+
+    .tabs {
+        padding: 0 20px;
+    }
+
+    .tab-btn {
+        padding: 12px 15px;
+        font-size: 13px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .case-navigation {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    #case-selector {
+        width: 100%;
+        min-width: auto;
+    }
+}

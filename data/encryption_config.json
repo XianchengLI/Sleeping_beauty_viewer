@@ -1,0 +1,5 @@
+{
+  "iterations": 10000,
+  "keySize": 256,
+  "algorithm": "AES-CBC"
+}
