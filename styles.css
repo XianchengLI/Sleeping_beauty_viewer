@@ -871,6 +871,31 @@ main {
     color: #4472C4;
 }
 
+/* ==================== Giscus Comments ==================== */
+
+.giscus-section {
+    margin-top: 30px;
+    padding: 25px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.giscus-section h3 {
+    margin: 0 0 8px 0;
+    color: #333;
+}
+
+.giscus-desc {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.giscus {
+    min-height: 150px;
+}
+
 /* ==================== Footer ==================== */
 
 footer {

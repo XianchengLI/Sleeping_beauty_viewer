@@ -379,10 +379,22 @@ function renderCase(index) {
     // Awakening Analysis
     html += renderAwakeningAnalysis(c.exploration, c.post_id);
 
+    // Giscus Comments Section
+    html += `
+        <div class="giscus-section">
+            <h3>Research Notes & Discussion</h3>
+            <p class="giscus-desc">Share your observations about this case with colleagues</p>
+            <div class="giscus"></div>
+        </div>
+    `;
+
     container.innerHTML = html;
 
     // Render timeline chart
     renderTimelineChart(c.daily_views, c.tm);
+
+    // Load Giscus for this case
+    loadGiscus(c.post_id);
 }
 
 function renderAwakeningAnalysis(exploration, postId) {
@@ -790,4 +802,31 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function loadGiscus(postId) {
+    // Remove existing giscus iframe if any
+    const giscusContainer = document.querySelector('.giscus');
+    if (!giscusContainer) return;
+    giscusContainer.innerHTML = '';
+
+    // Create and append giscus script
+    const script = document.createElement('script');
+    script.src = 'https://giscus.app/client.js';
+    script.setAttribute('data-repo', 'XianchengLI/Sleeping_beauty_viewer');
+    script.setAttribute('data-repo-id', 'R_kgDOQ5HPHQ');
+    script.setAttribute('data-category', 'Announcements');
+    script.setAttribute('data-category-id', 'DIC_kwDOQ5HPHc4C08u4');
+    script.setAttribute('data-mapping', 'specific');
+    script.setAttribute('data-term', `case-${postId}`);
+    script.setAttribute('data-strict', '0');
+    script.setAttribute('data-reactions-enabled', '1');
+    script.setAttribute('data-emit-metadata', '0');
+    script.setAttribute('data-input-position', 'bottom');
+    script.setAttribute('data-theme', 'preferred_color_scheme');
+    script.setAttribute('data-lang', 'en');
+    script.setAttribute('crossorigin', 'anonymous');
+    script.async = true;
+
+    giscusContainer.appendChild(script);
 }
