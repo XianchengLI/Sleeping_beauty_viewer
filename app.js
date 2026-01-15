@@ -294,11 +294,12 @@ function renderCase(index) {
 
     // Original Post
     if (c.main_post) {
+        const superuserBadge = c.main_post.is_superuser ? '<span class="superuser-badge">SUPERUSER</span>' : '';
         html += `
             <details class="content-section" open>
                 <summary>Original Post</summary>
                 <div class="post-content">
-                    <div class="post-meta">Author: User ${c.main_post.author_id} | ${c.main_post.date}</div>
+                    <div class="post-meta">Author: User ${c.main_post.author_id} ${superuserBadge} | ${c.main_post.date}</div>
                     <div class="post-body">${escapeHtml(c.main_post.body).replace(/\n/g, '<br>')}</div>
                 </div>
             </details>
