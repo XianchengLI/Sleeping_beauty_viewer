@@ -350,10 +350,12 @@ function renderCase(index) {
             ))
         );
 
+        const princeSuperuserBadge = c.prince_post.is_superuser ? '<span class="superuser-badge">SUPERUSER</span>' : '';
         html += `
             <details class="content-section" open>
                 <summary>Prince Post (Awakening Trigger)</summary>
                 <div class="prince-post">
+                    <div class="prince-meta">Author: User ${c.prince_post.author_id} ${princeSuperuserBadge} | ${c.prince_post.date || ''}</div>
                     <div class="prince-title">${escapeHtml(c.prince_post.title)}</div>
                     <div class="prince-body">${escapeHtml(c.prince_post.body).replace(/\n/g, '<br>')}</div>
                 </div>
