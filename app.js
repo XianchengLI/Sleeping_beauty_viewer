@@ -186,16 +186,15 @@ function viewLateAwakeningCase(index) {
         return;
     }
 
-    // Switch to cases tab
+    // Switch to 3-Year Cases tab
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.querySelector('[data-tab="cases"]').classList.add('active');
-    document.getElementById('cases').classList.add('active');
+    document.querySelector('[data-tab="late-cases"]').classList.add('active');
+    document.getElementById('late-cases').classList.add('active');
 
-    // Render late awakening case
-    currentCaseSource = 'late';
-    currentCaseIndex = index;
-    renderCaseFromData(lateAwakeningCases[index]);
+    // Update selector and render
+    document.getElementById('late-case-selector').value = index;
+    renderLateCaseInTab(index);
 }
 
 function renderCaseFromData(c) {
