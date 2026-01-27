@@ -887,6 +887,145 @@ main {
     color: #4472C4;
 }
 
+/* ==================== Late Awakening (3-Year Window) Tab ==================== */
+
+#late-awakening {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+}
+
+.late-awakening-header {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #4472C4;
+}
+
+.late-awakening-header h2 {
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.late-awakening-header .section-desc {
+    color: #666;
+    font-size: 14px;
+}
+
+#late-awakening .stats-grid {
+    margin-bottom: 30px;
+}
+
+#late-awakening .stat-card.highlight {
+    background: linear-gradient(135deg, #4472C4, #2c5282);
+    color: white;
+}
+
+#late-awakening .stat-card.highlight .stat-value {
+    color: white;
+}
+
+#late-awakening .stat-card.highlight .stat-label {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.table-desc {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+#late-awakening-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#late-awakening-table th,
+#late-awakening-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+#late-awakening-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #555;
+    position: sticky;
+    top: 0;
+}
+
+#late-awakening-table tr:hover {
+    background: #f0f7ff;
+}
+
+#late-awakening-table .title-cell {
+    max-width: 250px;
+}
+
+.invisible-badge {
+    background: #dc3545;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.category-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.category-badge.providing {
+    background: #d4edda;
+    color: #155724;
+}
+
+.category-badge.sis_ses {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.category-badge.sis_only {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.category-badge.ses_only {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+#late-awakening .guide-section {
+    margin-top: 30px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+#late-awakening .guide-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+#late-awakening .guide-section ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#late-awakening .guide-section li {
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+#late-awakening .guide-section li:last-child {
+    border-bottom: none;
+}
+
 /* ==================== Giscus Comments ==================== */
 
 .giscus-section {

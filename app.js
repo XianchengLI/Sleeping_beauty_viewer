@@ -8,6 +8,7 @@
 // Global state
 let casesData = [];
 let metadata = [];
+let lateAwakeningData = [];
 let currentCaseIndex = -1;
 
 // ==================== Authentication ====================
@@ -96,10 +97,54 @@ document.getElementById('password-input')?.addEventListener('keypress', function
 
 // ==================== App Initialization ====================
 
-function initializeApp() {
+async function initializeApp() {
     initializeTabs();
     renderOverview();
     populateCaseSelector();
+    await loadLateAwakeningData();
+}
+
+// ==================== Late Awakening (3-Year Window) Tab ====================
+
+async function loadLateAwakeningData() {
+    try {
+        const response = await fetch('data/late_awakening_top20.json');
+        lateAwakeningData = await response.json();
+        renderLateAwakeningTable();
+    } catch (error) {
+        console.error('Error loading late awakening data:', error);
+    }
+}
+
+function renderLateAwakeningTable() {
+    const tbody = document.querySelector('#late-awakening-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    lateAwakeningData.forEach(item => {
+        const row = document.createElement('tr');
+
+        // Determine if this was "invisible" in 1-year (rank > 1000 or very low B)
+        const isInvisible = item.rank_1yr > 1000 || item.B_1yr < 1;
+        const rank1yrDisplay = item.rank_1yr ?
+            (isInvisible ? `<span class="invisible-badge">${item.rank_1yr}</span>` : item.rank_1yr) :
+            'N/A';
+        const b1yrDisplay = item.B_1yr !== null ?
+            (item.B_1yr < 1 ? `<span class="invisible-badge">${item.B_1yr.toFixed(1)}</span>` : item.B_1yr.toFixed(1)) :
+            'N/A';
+
+        row.innerHTML = `
+            <td><strong>${item.rank_3yr}</strong></td>
+            <td>${rank1yrDisplay}</td>
+            <td class="title-cell">${escapeHtml(item.title)}</td>
+            <td><strong>${item.B_3yr.toFixed(1)}</strong></td>
+            <td>${b1yrDisplay}</td>
+            <td>${item.sleep_duration}</td>
+            <td>${item.tm}</td>
+            <td><span class="category-badge ${item.category.toLowerCase()}">${item.category}</span></td>
+        `;
+        tbody.appendChild(row);
+    });
 }
 
 function initializeTabs() {
