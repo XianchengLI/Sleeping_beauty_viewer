@@ -128,6 +128,7 @@ async function loadLateAwakeningData() {
             if (decrypted) {
                 lateAwakeningCases = decrypted;
                 console.log(`Loaded ${lateAwakeningCases.length} late awakening cases`);
+                populateLateCaseSelector();
             }
         } catch (e) {
             console.log('Late awakening case data not available yet');
@@ -293,6 +294,141 @@ function renderCaseFromData(c) {
 
     // Render timeline chart
     renderTimelineChart(c.daily_views, c.tm);
+}
+
+// ==================== 3-Year Case Browser Tab ====================
+
+let currentLateCaseIndex = -1;
+
+function populateLateCaseSelector() {
+    const selector = document.getElementById('late-case-selector');
+    if (!selector) return;
+
+    lateAwakeningCases.forEach((c, i) => {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `#${c.rank} (3yr) - ${c.title.substring(0, 50)}...`;
+        selector.appendChild(option);
+    });
+
+    selector.addEventListener('change', () => {
+        const idx = parseInt(selector.value);
+        if (!isNaN(idx)) {
+            renderLateCaseInTab(idx);
+        }
+    });
+}
+
+function prevLateCase() {
+    if (currentLateCaseIndex > 0) {
+        document.getElementById('late-case-selector').value = currentLateCaseIndex - 1;
+        renderLateCaseInTab(currentLateCaseIndex - 1);
+    }
+}
+
+function nextLateCase() {
+    if (currentLateCaseIndex < lateAwakeningCases.length - 1) {
+        document.getElementById('late-case-selector').value = currentLateCaseIndex + 1;
+        renderLateCaseInTab(currentLateCaseIndex + 1);
+    }
+}
+
+function renderLateCaseInTab(index) {
+    currentLateCaseIndex = index;
+    const c = lateAwakeningCases[index];
+    const container = document.getElementById('late-case-detail');
+
+    // Calculate peak period
+    const peakStart = c.tm - 7;
+    const peakEnd = c.tm + 7;
+    const createdDate = new Date(c.created_date);
+
+    // Badge for late awakening
+    const lateAwakeningBadge = `<span class="late-awakening-badge">LATE AWAKENING (${c.sleep_duration}d sleep)</span>`;
+
+    let html = `
+        <div class="case-header">
+            <div class="case-meta">
+                <span class="rank-badge">#${c.rank} (3yr)</span>
+                <span class="b-value">B: ${c.B.toFixed(1)}</span>
+                <span class="peak-day">Peak: Day ${c.tm}</span>
+                <span class="category-tag">${c.category}</span>
+                ${lateAwakeningBadge}
+            </div>
+            <h2>${escapeHtml(c.title)}</h2>
+        </div>
+
+        <div class="mechanism-section">
+            <h3>Mechanism Status</h3>
+            <div class="mechanism-card n/a">
+                <div class="mechanism-name">${c.mechanism}</div>
+                <div class="mechanism-confidence">Confidence: ${c.confidence}</div>
+                <div class="mechanism-evidence">${escapeHtml(c.evidence)}</div>
+            </div>
+        </div>
+
+        <div class="timeline-section">
+            <h3>Daily Views Timeline (3-Year Window)</h3>
+            <canvas id="late-timeline-chart"></canvas>
+        </div>
+    `;
+
+    // Original Post
+    if (c.main_post) {
+        const superuserBadge = c.main_post.is_superuser ? '<span class="superuser-badge">SUPERUSER</span>' : '';
+        html += `
+            <details class="content-section" open>
+                <summary>Original Post</summary>
+                <div class="post-content">
+                    <div class="post-meta">Author: User ${c.main_post.author_id} ${superuserBadge} | ${c.main_post.date}</div>
+                    <div class="post-body">${escapeHtml(c.main_post.body).replace(/\n/g, '<br>')}</div>
+                </div>
+            </details>
+        `;
+    }
+
+    // Comments
+    if (c.comments && c.comments.length > 0) {
+        html += `
+            <details class="content-section">
+                <summary>Comments (${c.comments.length})</summary>
+                <div class="comments-list">
+        `;
+
+        c.comments.forEach(comment => {
+            const commentDate = new Date(comment.date);
+            const dayNum = Math.floor((commentDate - createdDate) / (1000 * 60 * 60 * 24));
+            const isPeak = dayNum >= peakStart && dayNum <= peakEnd;
+            const peakClass = isPeak ? 'peak-comment' : '';
+            const peakBadge = isPeak ? '<span class="peak-badge">PEAK</span>' : '';
+
+            html += `
+                <div class="comment-box ${peakClass}">
+                    <div class="comment-header">
+                        Day ${dayNum} | User ${comment.user_id} ${peakBadge}
+                    </div>
+                    <div class="comment-body">${escapeHtml(comment.body).replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+        });
+
+        html += `</div></details>`;
+    }
+
+    // Note about mechanism analysis
+    html += `
+        <div class="info-box">
+            <h4>Note</h4>
+            <p>This is a late-awakening Sleeping Beauty from the 3-year window analysis.
+            Mechanism analysis is pending. The post remained dormant for ${c.sleep_duration} days
+            before awakening at day ${c.tm}.</p>
+        </div>
+    `;
+
+    container.innerHTML = html;
+
+    // Render timeline chart with different canvas ID
+    renderTimelineChart(c.daily_views, c.tm, 'late-timeline-chart');
 }
 
 function initializeTabs() {
@@ -749,8 +885,8 @@ function renderAwakeningAnalysis(exploration, postId) {
     return html;
 }
 
-function renderTimelineChart(dailyViews, peakDay) {
-    const ctx = document.getElementById('timeline-chart');
+function renderTimelineChart(dailyViews, peakDay, canvasId = 'timeline-chart') {
+    const ctx = document.getElementById(canvasId);
     if (!ctx) return;
 
     new Chart(ctx, {

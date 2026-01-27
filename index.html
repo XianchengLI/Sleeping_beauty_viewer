@@ -34,6 +34,7 @@
             <button class="tab-btn active" data-tab="overview">Overview</button>
             <button class="tab-btn" data-tab="cases">Case Browser</button>
             <button class="tab-btn" data-tab="late-awakening">3-Year Window</button>
+            <button class="tab-btn" data-tab="late-cases">3-Year Cases</button>
             <button class="tab-btn" data-tab="guide">Field Guide</button>
         </nav>
 
@@ -162,6 +163,23 @@
                         <li><strong>Providing Category:</strong> Top 3 are all "Providing" posts - informational content has longer "shelf life"</li>
                         <li><strong>Extreme Cases:</strong> Some posts slept for nearly 3 years (900+ days) before awakening</li>
                     </ul>
+                </div>
+            </section>
+
+            <!-- 3-Year Case Browser Tab -->
+            <section id="late-cases" class="tab-content">
+                <div class="case-navigation">
+                    <select id="late-case-selector">
+                        <option value="">Select a 3-year case...</option>
+                    </select>
+                    <div class="nav-buttons">
+                        <button onclick="prevLateCase()">Previous</button>
+                        <button onclick="nextLateCase()">Next</button>
+                    </div>
+                </div>
+
+                <div id="late-case-detail" class="case-detail">
+                    <p class="placeholder-text">Select a case from the dropdown above to view details.</p>
                 </div>
             </section>
 
