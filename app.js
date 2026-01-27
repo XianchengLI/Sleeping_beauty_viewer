@@ -129,9 +129,11 @@ async function loadLateAwakeningData() {
                 lateAwakeningCases = decrypted;
                 console.log(`Loaded ${lateAwakeningCases.length} late awakening cases`);
                 populateLateCaseSelector();
+            } else {
+                console.warn('Late awakening decryption returned null');
             }
         } catch (e) {
-            console.log('Late awakening case data not available yet');
+            console.error('Error loading late awakening cases:', e);
         }
 
         renderLateAwakeningTable();
