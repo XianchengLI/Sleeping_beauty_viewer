@@ -531,6 +531,8 @@ function renderOverviewTable() {
 
     metadata.forEach(c => {
         const row = document.createElement('tr');
+        const authorViews = c.author_peak_views || 0;
+        const viewsClass = authorViews > 0 ? 'has-author-views' : '';
         row.innerHTML = `
             <td>${c.rank}</td>
             <td class="title-cell">${escapeHtml(c.title)}</td>
@@ -538,6 +540,7 @@ function renderOverviewTable() {
             <td>${c.tm}</td>
             <td>${c.category}</td>
             <td><span class="mechanism-badge">${c.mechanism}</span></td>
+            <td class="${viewsClass}">${authorViews > 0 ? '👁️ ' + authorViews : '—'}</td>
             <td><button onclick="viewCase(${c.rank - 1})">View</button></td>
         `;
         tbody.appendChild(row);
@@ -625,6 +628,31 @@ function renderCase(index) {
             <canvas id="timeline-chart"></canvas>
         </div>
     `;
+
+    // Author Peak Views
+    if (c.author_peak_views) {
+        const apv = c.author_peak_views;
+        const viewClass = apv.has_views ? 'author-viewed' : 'author-not-viewed';
+        const viewIcon = apv.has_views ? '👁️' : '—';
+        html += `
+            <div class="author-peak-views-section ${viewClass}">
+                <h3>Author Views During Peak Period</h3>
+                <div class="author-views-card">
+                    <div class="views-summary">
+                        <span class="views-icon">${viewIcon}</span>
+                        <span class="views-count">${apv.view_count}</span>
+                        <span class="views-label">view${apv.view_count !== 1 ? 's' : ''} by author during peak (Day ${c.tm - 7} to ${c.tm + 7})</span>
+                    </div>
+                    ${apv.view_dates && apv.view_dates.length > 0 ? `
+                        <div class="views-dates">
+                            <strong>View timestamps:</strong>
+                            <ul>${apv.view_dates.map(d => `<li>${d}</li>`).join('')}</ul>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
 
     // Original Post
     if (c.main_post) {

@@ -49,15 +49,40 @@ def load_source_data():
         prince_exploration = json.load(f)
     print(f"  Prince exploration: {len(prince_exploration)} cases")
 
-    # Daily views
-    daily_views = pd.read_csv(RESULTS_PATH / "sb_post_daily_views.csv")
-    print(f"  Daily views: {len(daily_views)} records")
+    # Daily views (use extended version if available)
+    extended_views_file = RESULTS_PATH / "sb_top20_daily_views_extended.csv"
+    if extended_views_file.exists():
+        daily_views = pd.read_csv(extended_views_file)
+        print(f"  Daily views (extended): {len(daily_views)} records, max day: {daily_views['post_age_days'].max()}")
+    else:
+        daily_views = pd.read_csv(RESULTS_PATH / "sb_post_daily_views.csv")
+        print(f"  Daily views: {len(daily_views)} records")
 
     # Raw posts (only load relevant ones)
     raw_posts = pd.read_csv(DATA_PATH / "raw" / "posts_combined.csv", encoding='utf-8')
     print(f"  Raw posts: {len(raw_posts)} total")
 
-    return mechanisms, prince_exploration, daily_views, raw_posts
+    # Superusers (top 1%)
+    superusers_file = DATA_PATH / "processed" / "superusers_top1pct.csv"
+    if superusers_file.exists():
+        superusers = pd.read_csv(superusers_file)
+        superuser_ids = set(superusers['simplified_user_id'].tolist())
+        print(f"  Superusers: {len(superuser_ids)} users (top 1%)")
+    else:
+        superuser_ids = set()
+        print("  Superusers: file not found, skipping")
+
+    # Raw pageview data for author peak views analysis
+    pageviews_file = DATA_PATH / "raw" / "read_asthma.csv"
+    if pageviews_file.exists():
+        pageviews = pd.read_csv(pageviews_file, encoding='utf-8')
+        pageviews['timestamp'] = pd.to_datetime(pageviews['timestamp'])
+        print(f"  Pageviews: {len(pageviews)} records")
+    else:
+        pageviews = pd.DataFrame()
+        print("  Pageviews: file not found, skipping author peak views")
+
+    return mechanisms, prince_exploration, daily_views, raw_posts, superuser_ids, pageviews
 
 
 def get_relevant_posts(mechanisms, prince_exploration, raw_posts):
@@ -95,7 +120,42 @@ def get_relevant_posts(mechanisms, prince_exploration, raw_posts):
     return relevant_posts
 
 
-def prepare_case_data(mechanisms, prince_exploration, daily_views, relevant_posts):
+def calculate_author_peak_views(post_id, author_id, created_date, tm, pageviews):
+    """Calculate how many times the author viewed their own post during peak period."""
+    if pageviews.empty or pd.isna(author_id):
+        return {'has_views': False, 'view_count': 0, 'view_dates': []}
+
+    # Filter pageviews for this post by the author
+    post_views = pageviews[
+        (pageviews['post_id'] == post_id) &
+        (pageviews['simplified_user_id'] == author_id)
+    ].copy()
+
+    if len(post_views) == 0:
+        return {'has_views': False, 'view_count': 0, 'view_dates': []}
+
+    # Calculate peak period (tm - 7 to tm + 7 days from post creation)
+    created = pd.to_datetime(created_date)
+    peak_start = created + pd.Timedelta(days=tm - 7)
+    peak_end = created + pd.Timedelta(days=tm + 7)
+
+    # Filter views during peak period
+    peak_views = post_views[
+        (post_views['timestamp'] >= peak_start) &
+        (post_views['timestamp'] <= peak_end)
+    ]
+
+    view_count = len(peak_views)
+    view_dates = peak_views['timestamp'].dt.strftime('%Y-%m-%d %H:%M').tolist() if view_count > 0 else []
+
+    return {
+        'has_views': view_count > 0,
+        'view_count': view_count,
+        'view_dates': view_dates[:10]  # Limit to first 10 for display
+    }
+
+
+def prepare_case_data(mechanisms, prince_exploration, daily_views, relevant_posts, superuser_ids, pageviews):
     """Prepare case data structure for the viewer."""
     cases = []
 
@@ -109,10 +169,12 @@ def prepare_case_data(mechanisms, prince_exploration, daily_views, relevant_post
         main_post_data = None
         if len(main_post) > 0:
             mp = main_post.iloc[0]
+            author_id = mp['simplified_user_id']
             main_post_data = {
                 'title': mp['title'],
                 'body': str(mp['body']) if pd.notna(mp['body']) else '',
-                'author_id': mp['simplified_user_id'],
+                'author_id': author_id,
+                'is_superuser': author_id in superuser_ids,
                 'date': str(mp['datecreated']),
                 'category': mp.get('category', '')
             }
@@ -142,11 +204,21 @@ def prepare_case_data(mechanisms, prince_exploration, daily_views, relevant_post
             prince_post = relevant_posts[relevant_posts['postid'] == int(row['prince_id'])]
             if len(prince_post) > 0:
                 pp = prince_post.iloc[0]
+                prince_author_id = pp['simplified_user_id']
                 prince_post_data = {
                     'post_id': int(row['prince_id']),
                     'title': pp['title'],
-                    'body': str(pp['body']) if pd.notna(pp['body']) else ''
+                    'body': str(pp['body']) if pd.notna(pp['body']) else '',
+                    'author_id': prince_author_id,
+                    'is_superuser': prince_author_id in superuser_ids,
+                    'date': str(pp['datecreated']) if pd.notna(pp['datecreated']) else ''
                 }
+
+        # Calculate author peak views
+        author_id = main_post_data['author_id'] if main_post_data else None
+        author_peak_views = calculate_author_peak_views(
+            post_id, author_id, row['created_date'], row['tm'], pageviews
+        )
 
         case = {
             'rank': int(row['rank']),
@@ -163,6 +235,7 @@ def prepare_case_data(mechanisms, prince_exploration, daily_views, relevant_post
             'comments': comments_data,
             'daily_views': views_data,
             'prince_post': prince_post_data,
+            'author_peak_views': author_peak_views,
             'exploration': {
                 'author_posts': prince_info.get('author_posts', []),
                 'author_comments_elsewhere': prince_info.get('author_comments_elsewhere', []),
@@ -251,14 +324,14 @@ def main():
     print("=" * 60)
 
     # Load data
-    mechanisms, prince_exploration, daily_views, raw_posts = load_source_data()
+    mechanisms, prince_exploration, daily_views, raw_posts, superuser_ids, pageviews = load_source_data()
 
     # Get relevant posts
     relevant_posts = get_relevant_posts(mechanisms, prince_exploration, raw_posts)
 
     # Prepare case data
     print("\nPreparing case data...")
-    cases = prepare_case_data(mechanisms, prince_exploration, daily_views, relevant_posts)
+    cases = prepare_case_data(mechanisms, prince_exploration, daily_views, relevant_posts, superuser_ids, pageviews)
     print(f"  Prepared {len(cases)} cases")
 
     # Create output directory
@@ -277,7 +350,8 @@ def main():
             'mechanism': case['mechanism'],
             'confidence': case['confidence'],
             'comments_count': len(case['comments']),
-            'has_prince': case['prince_post'] is not None
+            'has_prince': case['prince_post'] is not None,
+            'author_peak_views': case['author_peak_views']['view_count']
         })
 
     with open(OUTPUT_PATH / "metadata.json", 'w', encoding='utf-8') as f:
