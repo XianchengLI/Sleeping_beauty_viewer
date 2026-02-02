@@ -1281,3 +1281,82 @@ footer p {
     font-size: 15px;
     background: white;
 }
+
+/* ==================== Author Peak Views ==================== */
+
+.author-peak-views-section {
+    margin: 20px 0;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border-left: 4px solid #9e9e9e;
+    background: #f5f5f5;
+}
+
+.author-peak-views-section.author-viewed {
+    border-left-color: #ff9800;
+    background: #fff8e1;
+}
+
+.author-peak-views-section.author-not-viewed {
+    border-left-color: #4caf50;
+    background: #e8f5e9;
+}
+
+.author-peak-views-section h3 {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #333;
+}
+
+.author-views-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.views-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+}
+
+.views-icon {
+    font-size: 20px;
+}
+
+.views-count {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff9800;
+}
+
+.author-not-viewed .views-count {
+    color: #4caf50;
+}
+
+.views-label {
+    color: #666;
+}
+
+.views-dates {
+    font-size: 13px;
+    color: #666;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+}
+
+.views-dates ul {
+    margin: 5px 0 0 20px;
+    padding: 0;
+}
+
+.views-dates li {
+    margin: 3px 0;
+}
+
+/* Author views in overview table */
+.has-author-views {
+    color: #ff9800;
+    font-weight: bold;
+}
