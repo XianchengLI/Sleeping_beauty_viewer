@@ -10,8 +10,11 @@ let casesData = [];
 let metadata = [];
 let lateAwakeningData = [];
 let lateAwakeningCases = [];
+let hourlyMetadata = [];
+let hourlyCasesData = [];
 let currentCaseIndex = -1;
-let currentCaseSource = 'main'; // 'main' or 'late'
+let currentHourlyCaseIndex = -1;
+let currentCaseSource = 'main'; // 'main' or 'late' or 'hourly'
 let storedPassword = null;
 
 // ==================== Authentication ====================
@@ -106,6 +109,7 @@ async function initializeApp() {
     renderOverview();
     populateCaseSelector();
     await loadLateAwakeningData();
+    await loadHourlyDedupData();
 }
 
 // ==================== Late Awakening (3-Year Window) Tab ====================
@@ -1162,4 +1166,294 @@ function loadGiscus(postId) {
     script.async = true;
 
     giscusContainer.appendChild(script);
+}
+
+// ==================== Hourly Dedup Tab ====================
+
+async function loadHourlyDedupData() {
+    try {
+        // Load metadata for overview
+        const metaResponse = await fetch('data/hourly_metadata.json');
+        hourlyMetadata = await metaResponse.json();
+        console.log(`Loaded ${hourlyMetadata.length} hourly metadata cases`);
+
+        // Try to load and decrypt detailed case data
+        try {
+            const configResponse = await fetch('data/encryption_config.json');
+            const config = await configResponse.json();
+
+            const encryptedResponse = await fetch('data/hourly_cases.encrypted');
+            const encrypted = await encryptedResponse.json();
+
+            const decrypted = decryptData(encrypted, storedPassword, config);
+            if (decrypted) {
+                hourlyCasesData = decrypted;
+                console.log(`Loaded ${hourlyCasesData.length} hourly cases`);
+                populateHourlyCaseSelector();
+            } else {
+                console.warn('Hourly cases decryption returned null');
+            }
+        } catch (e) {
+            console.error('Error loading hourly cases:', e);
+        }
+
+        renderHourlyOverview();
+    } catch (error) {
+        console.error('Error loading hourly dedup data:', error);
+    }
+}
+
+function renderHourlyOverview() {
+    if (hourlyMetadata.length === 0) return;
+
+    // Stats
+    document.getElementById('hourly-total-cases').textContent = hourlyMetadata.length;
+
+    const avgB = (hourlyMetadata.reduce((sum, c) => sum + c.B, 0) / hourlyMetadata.length).toFixed(1);
+    document.getElementById('hourly-avg-beauty').textContent = avgB;
+
+    const avgPeak = Math.round(hourlyMetadata.reduce((sum, c) => sum + c.tm, 0) / hourlyMetadata.length);
+    document.getElementById('hourly-avg-peak').textContent = avgPeak;
+
+    const withPrince = hourlyMetadata.filter(c => c.has_prince).length;
+    document.getElementById('hourly-with-prince').textContent = withPrince;
+
+    // Charts
+    renderHourlyMechanismChart();
+    renderHourlyCategoryChart();
+
+    // Table
+    renderHourlyOverviewTable();
+}
+
+function renderHourlyMechanismChart() {
+    const mechanismCounts = {};
+    hourlyMetadata.forEach(c => {
+        const mech = c.mechanism.split(' (')[0];
+        mechanismCounts[mech] = (mechanismCounts[mech] || 0) + 1;
+    });
+
+    const ctx = document.getElementById('hourly-mechanism-chart');
+    if (!ctx) return;
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(mechanismCounts),
+            datasets: [{
+                data: Object.values(mechanismCounts),
+                backgroundColor: [
+                    '#4472C4', '#ED7D31', '#A5A5A5', '#FFC000',
+                    '#5B9BD5', '#70AD47', '#9E480E', '#997300'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'right' }
+            }
+        }
+    });
+}
+
+function renderHourlyCategoryChart() {
+    const categoryCounts = {};
+    hourlyMetadata.forEach(c => {
+        categoryCounts[c.category] = (categoryCounts[c.category] || 0) + 1;
+    });
+
+    const ctx = document.getElementById('hourly-category-chart');
+    if (!ctx) return;
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(categoryCounts),
+            datasets: [{
+                label: 'Cases',
+                data: Object.values(categoryCounts),
+                backgroundColor: '#70AD47'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+function renderHourlyOverviewTable() {
+    const tbody = document.querySelector('#hourly-overview-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    hourlyMetadata.forEach(c => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${c.rank}</td>
+            <td class="title-cell">${escapeHtml(c.title)}</td>
+            <td>${c.B.toFixed(1)}</td>
+            <td>${c.tm}</td>
+            <td>${c.category}</td>
+            <td><span class="mechanism-badge">${c.mechanism}</span></td>
+            <td><button onclick="viewHourlyCase(${c.rank - 1})">View</button></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function populateHourlyCaseSelector() {
+    const selector = document.getElementById('hourly-case-selector');
+    if (!selector) return;
+
+    hourlyCasesData.forEach((c, i) => {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `#${c.rank} - ${c.title.substring(0, 50)}...`;
+        selector.appendChild(option);
+    });
+
+    selector.addEventListener('change', () => {
+        const idx = parseInt(selector.value);
+        if (!isNaN(idx)) {
+            renderHourlyCaseInTab(idx);
+        }
+    });
+}
+
+function viewHourlyCase(index) {
+    if (index >= hourlyCasesData.length) {
+        alert('Detailed case data not available yet.');
+        return;
+    }
+
+    // Switch to Hourly Cases tab
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector('[data-tab="hourly-cases"]').classList.add('active');
+    document.getElementById('hourly-cases').classList.add('active');
+
+    // Update selector and render
+    document.getElementById('hourly-case-selector').value = index;
+    renderHourlyCaseInTab(index);
+}
+
+function prevHourlyCase() {
+    if (currentHourlyCaseIndex > 0) {
+        document.getElementById('hourly-case-selector').value = currentHourlyCaseIndex - 1;
+        renderHourlyCaseInTab(currentHourlyCaseIndex - 1);
+    }
+}
+
+function nextHourlyCase() {
+    if (currentHourlyCaseIndex < hourlyCasesData.length - 1) {
+        document.getElementById('hourly-case-selector').value = currentHourlyCaseIndex + 1;
+        renderHourlyCaseInTab(currentHourlyCaseIndex + 1);
+    }
+}
+
+function renderHourlyCaseInTab(index) {
+    currentHourlyCaseIndex = index;
+    const c = hourlyCasesData[index];
+    const container = document.getElementById('hourly-case-detail');
+
+    // Calculate peak period
+    const peakStart = c.tm - 7;
+    const peakEnd = c.tm + 7;
+    const createdDate = new Date(c.created_date);
+
+    let html = `
+        <div class="case-header">
+            <div class="case-meta">
+                <span class="rank-badge hourly-badge">#${c.rank} (Hourly)</span>
+                <span class="b-value">B: ${c.B.toFixed(1)}</span>
+                <span class="peak-day">Peak: Day ${c.tm}</span>
+                <span class="category-tag">${c.category}</span>
+            </div>
+            <h2>${escapeHtml(c.title)}</h2>
+        </div>
+
+        <div class="mechanism-section">
+            <h3>AI-Inferred Mechanism</h3>
+            <div class="mechanism-card ${c.confidence.toLowerCase()}">
+                <div class="mechanism-name">${c.mechanism}</div>
+                <div class="mechanism-confidence">Confidence: ${c.confidence}</div>
+                <div class="mechanism-evidence">${escapeHtml(c.evidence)}</div>
+            </div>
+            ${renderMechanismChain(c)}
+        </div>
+
+        <div class="timeline-section">
+            <h3>Daily Views Timeline (Hourly Dedup)</h3>
+            <canvas id="hourly-timeline-chart"></canvas>
+        </div>
+    `;
+
+    // Original Post
+    if (c.main_post) {
+        const superuserBadge = c.main_post.is_superuser ? '<span class="superuser-badge">SUPERUSER</span>' : '';
+        html += `
+            <details class="content-section" open>
+                <summary>Original Post</summary>
+                <div class="post-content">
+                    <div class="post-meta">Author: User ${c.main_post.author_id} ${superuserBadge} | ${c.main_post.date}</div>
+                    <div class="post-body">${escapeHtml(c.main_post.body).replace(/\n/g, '<br>')}</div>
+                </div>
+            </details>
+        `;
+    }
+
+    // Comments
+    if (c.comments && c.comments.length > 0) {
+        html += `
+            <details class="content-section">
+                <summary>Comments (${c.comments.length})</summary>
+                <div class="comments-list">
+        `;
+
+        c.comments.forEach(comment => {
+            const commentDate = new Date(comment.date);
+            const dayNum = Math.floor((commentDate - createdDate) / (1000 * 60 * 60 * 24));
+            const isPeak = dayNum >= peakStart && dayNum <= peakEnd;
+            const peakClass = isPeak ? 'peak-comment' : '';
+            const peakBadge = isPeak ? '<span class="peak-badge">PEAK</span>' : '';
+
+            html += `
+                <div class="comment-box ${peakClass}">
+                    <div class="comment-header">
+                        Day ${dayNum} | User ${comment.user_id} ${peakBadge}
+                    </div>
+                    <div class="comment-body">${escapeHtml(comment.body).replace(/\n/g, '<br>')}</div>
+                </div>
+            `;
+        });
+
+        html += `</div></details>`;
+    }
+
+    // Prince Post
+    if (c.prince_post) {
+        const princeSuperuserBadge = c.prince_post.is_superuser ? '<span class="superuser-badge">SUPERUSER</span>' : '';
+        html += `
+            <details class="content-section" open>
+                <summary>Prince Post (Awakening Trigger)</summary>
+                <div class="prince-post">
+                    <div class="prince-meta">Author: User ${c.prince_post.author_id} ${princeSuperuserBadge} | ${c.prince_post.date || ''}</div>
+                    <div class="prince-title">${escapeHtml(c.prince_post.title)}</div>
+                    <div class="prince-body">${escapeHtml(c.prince_post.body).replace(/\n/g, '<br>')}</div>
+                </div>
+            </details>
+        `;
+    }
+
+    // Awakening Analysis
+    if (c.exploration) {
+        html += renderAwakeningAnalysis(c.exploration, c.post_id);
+    }
+
+    container.innerHTML = html;
+
+    // Render timeline chart
+    renderTimelineChart(c.daily_views, c.tm, 'hourly-timeline-chart');
 }

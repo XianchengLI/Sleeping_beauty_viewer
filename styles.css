@@ -1167,3 +1167,117 @@ footer p {
         min-width: auto;
     }
 }
+
+/* ==================== Hourly Dedup Tab ==================== */
+
+.tab-btn.hourly-tab {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.tab-btn.hourly-tab:hover {
+    background: #c8e6c9;
+}
+
+.tab-btn.hourly-tab.active {
+    background: #2e7d32;
+    color: white;
+}
+
+#hourly-overview,
+#hourly-cases {
+    animation: fadeIn 0.3s ease;
+}
+
+.hourly-header {
+    margin-bottom: 30px;
+}
+
+.hourly-header h2 {
+    color: #2e7d32;
+    margin-bottom: 10px;
+}
+
+.hourly-header .section-desc {
+    color: #666;
+    font-size: 15px;
+}
+
+#hourly-overview .stats-grid .stat-card {
+    border-left: 4px solid #4caf50;
+}
+
+#hourly-overview .stats-grid .stat-card.highlight {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+}
+
+#hourly-overview .stats-grid .stat-card.highlight .stat-value {
+    color: #2e7d32;
+}
+
+.info-box.warning {
+    background: #fff8e1;
+    border: 1px solid #ffcc02;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin: 20px 0;
+}
+
+.info-box.warning h4 {
+    color: #f57c00;
+    margin-bottom: 10px;
+}
+
+.info-box.warning p {
+    margin: 5px 0;
+    color: #666;
+}
+
+#hourly-overview-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#hourly-overview-table th,
+#hourly-overview-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+#hourly-overview-table th {
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+#hourly-overview-table tr:hover {
+    background: #f1f8e9;
+}
+
+#hourly-overview-table button {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+#hourly-overview-table button:hover {
+    background: #388e3c;
+}
+
+.rank-badge.hourly-badge {
+    background: #4caf50;
+}
+
+#hourly-case-selector {
+    min-width: 400px;
+    padding: 10px 15px;
+    border: 2px solid #4caf50;
+    border-radius: 6px;
+    font-size: 15px;
+    background: white;
+}

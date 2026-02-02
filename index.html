@@ -35,6 +35,8 @@
             <button class="tab-btn" data-tab="cases">Case Browser</button>
             <button class="tab-btn" data-tab="late-awakening">3-Year Window</button>
             <button class="tab-btn" data-tab="late-cases">3-Year Cases</button>
+            <button class="tab-btn hourly-tab" data-tab="hourly-overview">Hourly Dedup</button>
+            <button class="tab-btn hourly-tab" data-tab="hourly-cases">Hourly Cases</button>
             <button class="tab-btn" data-tab="guide">Field Guide</button>
         </nav>
 
@@ -179,6 +181,85 @@
                 </div>
 
                 <div id="late-case-detail" class="case-detail">
+                    <p class="placeholder-text">Select a case from the dropdown above to view details.</p>
+                </div>
+            </section>
+
+            <!-- Hourly Dedup Overview Tab -->
+            <section id="hourly-overview" class="tab-content">
+                <div class="hourly-header">
+                    <h2>Hourly Deduplication Results</h2>
+                    <p class="section-desc">Top 20 Sleeping Beauties using <strong>User-Post-Hour</strong> deduplication (same user, same post, same hour = 1 view)</p>
+                    <div class="info-box warning">
+                        <h4>What Changed?</h4>
+                        <p>Changed from <strong>Day dedup</strong> (same day = 1 view) to <strong>Hour dedup</strong> (same hour = 1 view).</p>
+                        <p>Hour dedup preserves legitimate multi-hour visits while still filtering refreshes/bots.</p>
+                        <p><strong>Impact:</strong> B values increased ~10-40%, and 3 new posts entered Top 20.</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card highlight">
+                        <div class="stat-value" id="hourly-total-cases">-</div>
+                        <div class="stat-label">Total Cases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="hourly-avg-beauty">-</div>
+                        <div class="stat-label">Avg Beauty (B)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="hourly-avg-peak">-</div>
+                        <div class="stat-label">Avg Peak Day</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="hourly-with-prince">-</div>
+                        <div class="stat-label">With Prince Post</div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Mechanism Distribution (Hourly)</h3>
+                        <canvas id="hourly-mechanism-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Category Distribution (Hourly)</h3>
+                        <canvas id="hourly-category-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="case-list">
+                    <h3>Top 20 Cases (Hourly Dedup)</h3>
+                    <table id="hourly-overview-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Title</th>
+                                <th>B</th>
+                                <th>Peak Day</th>
+                                <th>Category</th>
+                                <th>Mechanism</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Hourly Dedup Case Browser Tab -->
+            <section id="hourly-cases" class="tab-content">
+                <div class="case-navigation">
+                    <select id="hourly-case-selector">
+                        <option value="">Select a case (Hourly Dedup)...</option>
+                    </select>
+                    <div class="nav-buttons">
+                        <button onclick="prevHourlyCase()">Previous</button>
+                        <button onclick="nextHourlyCase()">Next</button>
+                    </div>
+                </div>
+
+                <div id="hourly-case-detail" class="case-detail">
                     <p class="placeholder-text">Select a case from the dropdown above to view details.</p>
                 </div>
             </section>
