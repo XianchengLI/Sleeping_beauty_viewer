@@ -297,8 +297,8 @@ function renderCaseFromData(c) {
 
     container.innerHTML = html;
 
-    // Render timeline chart
-    renderTimelineChart(c.daily_views, c.tm);
+    // Render timeline chart with comments overlay
+    renderTimelineChart(c.daily_views, c.tm, 'timeline-chart', c.comments || [], c.created_date);
 }
 
 // ==================== 3-Year Case Browser Tab ====================
@@ -432,8 +432,8 @@ function renderLateCaseInTab(index) {
 
     container.innerHTML = html;
 
-    // Render timeline chart with different canvas ID
-    renderTimelineChart(c.daily_views, c.tm, 'late-timeline-chart');
+    // Render timeline chart with different canvas ID and comments
+    renderTimelineChart(c.daily_views, c.tm, 'late-timeline-chart', c.comments || [], c.created_date);
 }
 
 function initializeTabs() {
@@ -755,8 +755,8 @@ function renderCase(index) {
 
     container.innerHTML = html;
 
-    // Render timeline chart
-    renderTimelineChart(c.daily_views, c.tm);
+    // Render timeline chart with comments overlay
+    renderTimelineChart(c.daily_views, c.tm, 'timeline-chart', c.comments || [], c.created_date);
 
     // Load Giscus for this case
     loadGiscus(c.post_id);
@@ -918,46 +918,100 @@ function renderAwakeningAnalysis(exploration, postId) {
     return html;
 }
 
-function renderTimelineChart(dailyViews, peakDay, canvasId = 'timeline-chart') {
+function renderTimelineChart(dailyViews, peakDay, canvasId = 'timeline-chart', comments = [], createdDate = null) {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return;
+
+    // Calculate comment counts per day
+    const commentsByDay = {};
+    if (comments.length > 0 && createdDate) {
+        const created = new Date(createdDate);
+        comments.forEach(comment => {
+            const commentDate = new Date(comment.date);
+            const dayNum = Math.floor((commentDate - created) / (1000 * 60 * 60 * 24));
+            commentsByDay[dayNum] = (commentsByDay[dayNum] || 0) + 1;
+        });
+    }
+
+    // Create comments data array aligned with dailyViews
+    const commentsData = dailyViews.map(d => commentsByDay[d.post_age_days] || 0);
+    const maxComments = Math.max(...commentsData, 1);
+    const maxViews = Math.max(...dailyViews.map(d => d.daily_views), 1);
+
+    const datasets = [{
+        label: 'Daily Views',
+        data: dailyViews.map(d => d.daily_views),
+        borderColor: '#4472C4',
+        backgroundColor: 'rgba(68, 114, 196, 0.1)',
+        fill: true,
+        tension: 0.1,
+        yAxisID: 'y'
+    }];
+
+    // Add comments dataset if there are comments
+    if (comments.length > 0) {
+        datasets.push({
+            label: 'Comments',
+            data: commentsData,
+            type: 'bar',
+            backgroundColor: 'rgba(255, 159, 64, 0.8)',
+            borderColor: '#FF9F40',
+            borderWidth: 1,
+            yAxisID: 'y1'
+        });
+    }
+
+    // Mark peak day on x-axis
+    const labels = dailyViews.map(d => d.post_age_days);
+    const peakIndex = labels.indexOf(peakDay);
 
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: dailyViews.map(d => d.post_age_days),
-            datasets: [{
-                label: 'Daily Views',
-                data: dailyViews.map(d => d.daily_views),
-                borderColor: '#4472C4',
-                backgroundColor: 'rgba(68, 114, 196, 0.1)',
-                fill: true,
-                tension: 0.1
-            }]
+            labels: labels,
+            datasets: datasets
         },
         options: {
             responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             plugins: {
-                annotation: {
-                    annotations: {
-                        peakLine: {
-                            type: 'line',
-                            xMin: peakDay,
-                            xMax: peakDay,
-                            borderColor: 'red',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            label: {
-                                content: `Peak (Day ${peakDay})`,
-                                enabled: true
-                            }
-                        }
-                    }
+                title: {
+                    display: peakIndex >= 0,
+                    text: `Peak Day: ${peakDay}`,
+                    color: 'red'
                 }
             },
             scales: {
-                x: { title: { display: true, text: 'Days since post creation' } },
-                y: { title: { display: true, text: 'Views' } }
+                x: {
+                    title: { display: true, text: 'Days since post creation' },
+                    ticks: {
+                        callback: function(value, index) {
+                            const day = labels[index];
+                            return day === peakDay ? `★${day}` : day;
+                        },
+                        color: function(context) {
+                            const day = labels[context.index];
+                            return day === peakDay ? 'red' : '#666';
+                        }
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    position: 'left',
+                    title: { display: true, text: 'Views' },
+                    beginAtZero: true
+                },
+                y1: {
+                    type: 'linear',
+                    position: 'right',
+                    title: { display: comments.length > 0, text: 'Comments' },
+                    beginAtZero: true,
+                    grid: { drawOnChartArea: false },
+                    display: comments.length > 0
+                }
             }
         }
     });
@@ -1510,6 +1564,6 @@ function renderHourlyCaseInTab(index) {
 
     container.innerHTML = html;
 
-    // Render timeline chart
-    renderTimelineChart(c.daily_views, c.tm, 'hourly-timeline-chart');
+    // Render timeline chart with comments overlay
+    renderTimelineChart(c.daily_views, c.tm, 'hourly-timeline-chart', c.comments || [], c.created_date);
 }
