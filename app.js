@@ -214,6 +214,8 @@ function renderCaseFromData(c) {
         ? `<span class="late-awakening-badge">LATE AWAKENING (${c.sleep_duration}d sleep)</span>`
         : '';
 
+    const forumUrl = `https://healthunlocked.com/asthmauk/posts/${c.post_id}`;
+
     let html = `
         <div class="case-header">
             <div class="case-meta">
@@ -222,6 +224,7 @@ function renderCaseFromData(c) {
                 <span class="peak-day">Peak: Day ${c.tm}</span>
                 <span class="category-tag">${c.category}</span>
                 ${lateAwakeningBadge}
+                <a href="${forumUrl}" target="_blank" class="view-original-link">View Original ↗</a>
             </div>
             <h2>${escapeHtml(c.title)}</h2>
         </div>
@@ -351,6 +354,8 @@ function renderLateCaseInTab(index) {
     // Badge for late awakening
     const lateAwakeningBadge = `<span class="late-awakening-badge">LATE AWAKENING (${c.sleep_duration}d sleep)</span>`;
 
+    const forumUrl = `https://healthunlocked.com/asthmauk/posts/${c.post_id}`;
+
     let html = `
         <div class="case-header">
             <div class="case-meta">
@@ -359,6 +364,7 @@ function renderLateCaseInTab(index) {
                 <span class="peak-day">Peak: Day ${c.tm}</span>
                 <span class="category-tag">${c.category}</span>
                 ${lateAwakeningBadge}
+                <a href="${forumUrl}" target="_blank" class="view-original-link">View Original ↗</a>
             </div>
             <h2>${escapeHtml(c.title)}</h2>
         </div>
@@ -602,6 +608,8 @@ function renderCase(index) {
     const peakEnd = c.tm + 7;
     const createdDate = new Date(c.created_date);
 
+    const forumUrl = `https://healthunlocked.com/asthmauk/posts/${c.post_id}`;
+
     let html = `
         <div class="case-header">
             <div class="case-meta">
@@ -609,6 +617,7 @@ function renderCase(index) {
                 <span class="b-value">B: ${c.B.toFixed(1)}</span>
                 <span class="peak-day">Peak: Day ${c.tm}</span>
                 <span class="category-tag">${c.category}</span>
+                <a href="${forumUrl}" target="_blank" class="view-original-link">View Original ↗</a>
             </div>
             <h2>${escapeHtml(c.title)}</h2>
         </div>
@@ -1448,6 +1457,8 @@ function renderHourlyCaseInTab(index) {
     const peakEnd = c.tm + 7;
     const createdDate = new Date(c.created_date);
 
+    const forumUrl = `https://healthunlocked.com/asthmauk/posts/${c.post_id}`;
+
     let html = `
         <div class="case-header">
             <div class="case-meta">
@@ -1455,6 +1466,7 @@ function renderHourlyCaseInTab(index) {
                 <span class="b-value">B: ${c.B.toFixed(1)}</span>
                 <span class="peak-day">Peak: Day ${c.tm}</span>
                 <span class="category-tag">${c.category}</span>
+                <a href="${forumUrl}" target="_blank" class="view-original-link">View Original ↗</a>
             </div>
             <h2>${escapeHtml(c.title)}</h2>
         </div>

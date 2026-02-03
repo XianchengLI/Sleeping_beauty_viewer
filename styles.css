@@ -1360,3 +1360,22 @@ footer p {
     color: #ff9800;
     font-weight: bold;
 }
+
+/* View Original Link */
+.view-original-link {
+    display: inline-block;
+    background: #28a745;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    margin-left: 8px;
+    transition: background 0.2s;
+}
+
+.view-original-link:hover {
+    background: #218838;
+    color: white;
+}
