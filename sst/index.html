@@ -94,6 +94,7 @@
       </fieldset>
       <fieldset id="fs-type" hidden>
         <legend>Step 2. Type of support <span id="type-who"></span></legend>
+        <div class="rules" id="type-rules"></div>
         <label class="opt"><input type="radio" name="type" value="Informational"><span><b>Informational.</b> <span class="d" id="d-info"></span></span></label>
         <label class="opt"><input type="radio" name="type" value="Emotional"><span><b>Emotional.</b> <span class="d" id="d-emo"></span></span></label>
         <label class="opt"><input type="radio" name="type" value="Both"><span><b>Both.</b> <span class="d">Only when both elements are substantive parts of the post, not a brief worry or a polite phrase.</span></span></label>
@@ -129,7 +130,7 @@
 
 <div id="guide"><div class="panel"><button class="close" id="btn-guide-close">Close</button>
 <h1>Coding guide: social support type of forum opening posts</h1>
-<p>Version 0 (draft for the first-author trial, 2026-11-17). Condensed from the classifier prompts in
+<p>Version 0.1 (draft for the first-author trial, 2026-11-17; decision-order blocks added the same day after 14 trial posts). Condensed from the classifier prompts in
 <code>lurking/prompts/hierarchical_step*.txt</code>; every definition, indicator and decision rule below is taken
 from those prompts without change, and the examples are theirs. Not yet frozen: wording and examples may
 change after the 20-post trial and the calibration meeting; category boundaries may not.</p>
@@ -218,6 +219,18 @@ and from emotional support. Typical shape: distress plus a specific question.</p
 <li>Not Both: "Worried about symptoms, any advice?" is Informational (minimal emotion); "I'm really
   struggling" with a vague "what should I do?" is Emotional (the question is not specific).</li>
 </ul>
+<p><strong>Deciding in order</strong> (the rules above arranged as steps; nothing new):</p>
+<ol>
+<li>Is there a specific question whose answer would be facts, advice, or others' experience of a named
+   thing (a drug, symptom, device, test, service)? If yes, an informational component is present.
+   "Does anyone else get X" with a symptom or drug belongs here.</li>
+<li>Is distress, or a request for reassurance, a substantial part of the post rather than a passing
+   "a bit worried"? If yes, an emotional component is present. "Does anyone else feel X" with a feeling
+   belongs here.</li>
+<li>Both present: Both. Only 1: Informational. Only 2: Emotional.</li>
+<li>A narrative with no question at all: with distress, Emotional; a calm update, go back to Step 1 and
+   consider None.</li>
+</ol>
 <p>Examples: "My peak flow has dropped from 450 to 350 over the past week. Is this concerning? Should I
 contact my GP or wait?" Informational. "I was diagnosed last month and I'm absolutely terrified... I
 don't know how to live with this." Emotional. "I'm really anxious about my upcoming appointment with
@@ -243,6 +256,10 @@ support, each a meaningful part of the post, not a polite opener or closer.</p>
 <li>Suggestions in question form are Informational: "Have you tried X?", "Why don't you ask your GP about
   Y?", "Have you thought about Z?".</li>
 </ul>
+<p><strong>Deciding in order</strong>: 1. Is there practical content a reader could act on or learn from (a tip, a
+resource, an experience told to inform, a suggestion in question form)? If yes, informational. 2. Is
+there comfort, empathy or encouragement that forms real content, beyond an opener or closer? If yes,
+emotional. Both: Both.</p>
 <p>Examples: "When my asthma was at its worst, I found that sleeping with the head of my bed elevated
 really helped. Also, keeping a peak flow diary helped me spot patterns." Informational. "I completely
 understand how overwhelming this feels... You're doing better than you think. We're all here for
@@ -321,6 +338,10 @@ Both = PIS + PES; None + COM = COM; None + Ambiguous = excluded.</p>
   const $ = (s) => document.querySelector(s);
   let posts = [], idx = 0, who = '', store = {};
   const key = () => 'sstcoding_' + who;
+  const RULES = {
+    Seeking: '<b>Decide in order.</b><ol style="margin:4px 0 0;padding-left:18px"><li>Is there a <b>specific question</b> whose answer would be facts, advice or others\u2019 experience of a named thing (drug, symptom, device, test)? Yes = informational component. \u201cDoes anyone else get X\u201d with a symptom or drug counts.</li><li>Is <b>distress or a request for reassurance</b> a substantial part, not a passing \u201ca bit worried\u201d? Yes = emotional component. \u201cDoes anyone else feel X\u201d with a feeling counts.</li><li>Both = Both. Only 1 = Informational. Only 2 = Emotional.</li><li>No question at all: a distressed narrative = Emotional; a calm update = go back and consider None.</li></ol>',
+    Providing: '<b>Decide in order.</b><ol style="margin:4px 0 0;padding-left:18px"><li>Is there <b>practical content</b> a reader could act on or learn from (tip, resource, experience told to inform, suggestion in question form)? Yes = informational.</li><li>Is there <b>comfort, empathy or encouragement that forms real content</b>, beyond \u201cSorry to hear that\u201d or \u201cGood luck\u201d? Yes = emotional.</li><li>Both = Both.</li></ol>'
+  };
   const DESC = {
     Seeking: { who: '(what does the poster need?)', info: 'Facts, advice, practical guidance, others’ experiences to learn from. Would a factual answer satisfy the need?', emo: 'Comfort, reassurance, validation, understanding. Would empathy or “you’re not alone” satisfy the primary need?' },
     Providing: { who: '(what is the poster offering?)', info: 'Facts, tips, resources, experience shared to inform, suggestions in question form. Does it help someone know or do something?', emo: 'Comfort, empathy, encouragement, validation as the main content, not a polite opener or closer.' }
@@ -359,7 +380,7 @@ Both = PIS + PES; None + COM = COM; None + Ambiguous = excluded.</p>
     const sp = it === 'Seeking' || it === 'Providing';
     $('#fs-type').hidden = !sp; $('#fs-none').hidden = it !== 'None'; $('#fs-secondary').hidden = !sp;
     if (sp) {
-      $('#type-who').textContent = DESC[it].who; $('#d-info').textContent = DESC[it].info; $('#d-emo').textContent = DESC[it].emo;
+      $('#type-who').textContent = DESC[it].who; $('#type-rules').innerHTML = RULES[it]; $('#d-info').textContent = DESC[it].info; $('#d-emo').textContent = DESC[it].emo;
       $('#sec-label').innerHTML = '<b>' + (it === 'Seeking' ? 'Providing' : 'Seeking') + ' is also substantively present.</b>';
     }
   }
