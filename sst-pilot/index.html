@@ -69,7 +69,7 @@
 
 <section id="gate">
   <h2 style="margin-top:0">Support-type coding of opening posts</h2>
-  <p>20 opening posts from an online asthma community. This is a 20-post trial run: it checks the guide and the page, and tells us how long coding takes. Enter the password you were given and your initials. Your codes are saved in this browser as you go; export them as a CSV when you finish.</p>
+  <p>20 opening posts from an online asthma community. This is a 20-post trial run: it checks the page and tells us how long coding takes. Enter the password you were given and your initials. Your codes are saved in this browser as you go; export them as a CSV when you finish.</p>
   <label for="pw">Password</label><input id="pw" type="password" autocomplete="off">
   <label for="ini">Your initials</label><input id="ini" type="text" maxlength="6" placeholder="e.g. HEW">
   <div class="err" id="gate-err"></div>
@@ -85,6 +85,7 @@
   <aside>
     <div class="rules"><b>Code what the poster is trying to do</b>, not how good the post is. Decide the primary purpose first, then the type. The full rules are under <b>Coding guide</b> in the header.</div>
     <form id="form" onsubmit="return false">
+      <div class="rules" style="background:#eef6ef;border-color:#cfe5d3"><b>How to use this page.</b> Choose the options that fit the post; the rules next to them are all you need. Add a note whenever you are unsure. Everything saves as you go. When all posts are green, press <b>Export CSV</b> in the header and send the file.</div>
       <fieldset>
         <legend>Step 1. Primary intent</legend>
         <label class="opt"><input type="radio" name="intent" value="Seeking"><span><b>Seeking.</b> <span class="d">Wants to obtain something from others: information, advice, experiences, comfort.</span></span></label>
@@ -129,7 +130,7 @@
 </main>
 
 <div id="guide"><div class="panel"><button class="close" id="btn-guide-close">Close and start coding</button>
-<p style="color:var(--muted);font-size:14px">This guide opens by itself the first time you enter. Read it once before coding; afterwards it stays available under <b>Coding guide</b> in the header, and the main rules are repeated next to the answer options.</p>
+<p style="color:var(--muted);font-size:14px">The full coding guide. The rules you need while coding are repeated next to the answer options; come here when a case needs more detail or an example.</p>
 <h1>Coding guide: social support type of forum opening posts</h1>
 <p>Version 0.1 (draft for the first-author trial, 2026-11-17; decision-order blocks added the same day after 14 trial posts). Condensed from the classifier prompts in
 <code>lurking/prompts/hierarchical_step*.txt</code>; every definition, indicator and decision rule below is taken
@@ -372,7 +373,7 @@ Both = PIS + PES; None + COM = COM; None + Ambiguous = excluded.</p>
     $('#gate').style.display = 'none'; $('main').style.display = 'grid';
     idx = posts.findIndex(p => !complete(store[p.id] || {})); if (idx < 0) idx = 0;
     buildNav(); show();
-    if (!store.__guide_seen) { $('#guide').style.display = 'block'; store.__guide_seen = true; persist(); }
+    if (false && !store.__guide_seen) { $('#guide').style.display = 'block'; store.__guide_seen = true; persist(); }
   }
 
   function esc(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
