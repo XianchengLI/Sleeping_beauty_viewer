@@ -128,7 +128,8 @@
   </aside>
 </main>
 
-<div id="guide"><div class="panel"><button class="close" id="btn-guide-close">Close</button>
+<div id="guide"><div class="panel"><button class="close" id="btn-guide-close">Close and start coding</button>
+<p style="color:var(--muted);font-size:14px">This guide opens by itself the first time you enter. Read it once before coding; afterwards it stays available under <b>Coding guide</b> in the header, and the main rules are repeated next to the answer options.</p>
 <h1>Coding guide: social support type of forum opening posts</h1>
 <p>Version 0.1 (draft for the first-author trial, 2026-11-17; decision-order blocks added the same day after 14 trial posts). Condensed from the classifier prompts in
 <code>lurking/prompts/hierarchical_step*.txt</code>; every definition, indicator and decision rule below is taken
@@ -371,6 +372,7 @@ Both = PIS + PES; None + COM = COM; None + Ambiguous = excluded.</p>
     $('#gate').style.display = 'none'; $('main').style.display = 'grid';
     idx = posts.findIndex(p => !complete(store[p.id] || {})); if (idx < 0) idx = 0;
     buildNav(); show();
+    if (!store.__guide_seen) { $('#guide').style.display = 'block'; store.__guide_seen = true; persist(); }
   }
 
   function esc(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
