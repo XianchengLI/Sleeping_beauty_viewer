@@ -54,7 +54,9 @@
   <span class="pill" id="progress"></span>
   <span class="spacer"></span>
   <button id="btn-export" title="Download your ratings as a CSV file">Export CSV</button>
-  <button id="btn-help">Instructions</button>
+  <button id="btn-import" title="Restore ratings from a CSV exported earlier">Import CSV</button>
+  <input id="file-import" type="file" accept=".csv,text/csv" style="display:none">
+  <button id="btn-help">How to use</button>
 </header>
 
 <section id="gate">
@@ -93,9 +95,8 @@
         <label class="opt"><input type="checkbox" name="corrected_advice" value="yes"> yes, I noticed one</label>
       </fieldset>
       <fieldset>
-        <legend>4. Do you remember having seen this thread before?</legend>
-        <label class="opt"><input type="radio" name="seen_before" value="yes"> yes</label>
-        <label class="opt"><input type="radio" name="seen_before" value="no"> no</label>
+        <legend>4. Optional: you recognise this thread from earlier work?</legend>
+        <label class="opt"><input type="checkbox" name="seen_before" value="yes"> yes, I have seen it before</label>
       </fieldset>
       <fieldset>
         <legend>5. Comment (optional)</legend>
@@ -108,9 +109,11 @@
       <div class="saved" id="saved"></div>
     </form>
     <details id="help">
-      <summary>Instructions</summary>
-      <p>Rate alone, in one or more sittings, without discussing threads with the other raters until all forms are returned. Threads are anonymised and shuffled; dates, view counts and usernames have been removed. Do not try to work out when a thread was posted or how much it was read.</p>
-      <p>Every answer is saved in this browser automatically when you press "Save and next" or move to another thread. When all 60 are done, press "Export CSV" and send the file back. If you change computer or browser, export first: the saved answers do not follow you.</p>
+      <summary>How to use this page</summary>
+      <p><b>The rating criteria are the ones shown next to each answer above.</b> Questions 1 and 2 are required; 3 and 4 are optional and only need a tick when they apply.</p>
+      <p>Rate alone, in as many sittings as you like, without discussing threads with the other raters until all forms are returned. Threads are anonymised and shuffled; dates, view counts and usernames have been removed. Do not try to work out when a thread was posted or how much it was read.</p>
+      <p><b>Saving.</b> Every answer is saved automatically in this browser on this computer, and survives closing the page or restarting the computer. It does not carry over to another computer, another browser, or a private window, and it is lost if you clear the browser's site data. To continue elsewhere, press "Export CSV" here and "Import CSV" there. Exporting part-way is also a good backup.</p>
+      <p><b>Finishing.</b> When all 60 show green, press "Export CSV" and send the file back.</p>
     </details>
   </aside>
 </main>
@@ -160,7 +163,7 @@
     if (s.interest) f.interest.value = s.interest;
     if (s.usefulness !== undefined && s.usefulness !== '') f.usefulness.value = s.usefulness;
     f.corrected_advice.checked = s.corrected_advice === 'yes';
-    if (s.seen_before) f.seen_before.value = s.seen_before;
+    f.seen_before.checked = s.seen_before === 'yes';
     f.comment.value = s.comment || '';
     $('#saved').textContent = '';
     $('#btn-prev').disabled = idx === 0;
@@ -172,16 +175,16 @@
 
   function read() {
     const f = $('#form');
-    return { interest: f.interest.value, usefulness: f.usefulness.value, corrected_advice: f.corrected_advice.checked ? 'yes' : '', seen_before: f.seen_before.value, comment: f.comment.value.trim() };
+    return { interest: f.interest.value, usefulness: f.usefulness.value, corrected_advice: f.corrected_advice.checked ? 'yes' : '', seen_before: f.seen_before.checked ? 'yes' : '', comment: f.comment.value.trim() };
   }
-  function complete(r) { return r.interest && r.usefulness !== '' && r.seen_before; }
+  function complete(r) { return !!(r.interest && r.usefulness !== '' && r.usefulness !== undefined); }
 
   function save(silent) {
     const r = read(), t = threads[idx];
     if (!r.interest && r.usefulness === '' && !r.seen_before && !r.comment && !r.corrected_advice) return true;
     store[t.id] = r; persist();
     document.querySelectorAll('#navgrid button')[idx].classList.toggle('done', complete(r));
-    if (!silent) $('#saved').textContent = complete(r) ? 'Saved.' : 'Saved (incomplete: answer 1, 2 and 4).';
+    if (!silent) $('#saved').textContent = complete(r) ? 'Saved.' : 'Saved (incomplete: questions 1 and 2 are required).';
     progress();
     return complete(r);
   }
@@ -218,6 +221,40 @@
   $('#btn-next').onclick = () => { const ok = save(); if (idx < threads.length - 1) { idx++; show(); } else if (ok) { $('#saved').textContent = 'Saved. This was the last thread; use Export CSV when all are done.'; } };
   $('#btn-prev').onclick = () => { save(true); if (idx > 0) { idx--; show(); } };
   $('#btn-export').onclick = exportCsv;
+
+  function parseCsv(text) {
+    const rows = [], re = /("([^"]|"")*"|[^,\n\r]*)(,|\r?\n|$)/g;
+    let row = [], m;
+    while ((m = re.exec(text)) !== null) {
+      let v = m[1]; if (v.startsWith('"')) v = v.slice(1, -1).replace(/""/g, '"');
+      row.push(v);
+      if (m[3] !== ',') { rows.push(row); row = []; }
+      if (m[0] === '') { re.lastIndex++; }
+      if (re.lastIndex >= text.length) break;
+    }
+    return rows.filter(r => r.length > 1 || (r[0] && r[0].trim()));
+  }
+  function importCsv(file) {
+    const rd = new FileReader();
+    rd.onload = () => {
+      const rows = parseCsv(rd.result.replace(/^﻿/, ''));
+      const head = rows.shift().map(h => h.trim().toLowerCase());
+      const ix = (n) => head.indexOf(n);
+      if (ix('rid') < 0 || ix('usefulness') < 0) { alert('This does not look like an exported rating file.'); return; }
+      let n = 0;
+      rows.forEach(r => {
+        const id = (r[ix('rid')] || '').trim();
+        if (!threads.some(t => t.id === id)) return;
+        store[id] = { interest: (r[ix('interest')] || '').trim(), usefulness: (r[ix('usefulness')] || '').trim(), corrected_advice: (r[ix('corrected_advice')] || '').trim(), seen_before: (r[ix('seen_before')] || '').trim(), comment: (r[ix('comment')] || '').trim() };
+        n++;
+      });
+      persist(); buildNav(); show();
+      alert(`Imported ${n} rows. They replace what was saved here for those threads.`);
+    };
+    rd.readAsText(file);
+  }
+  $('#btn-import').onclick = () => $('#file-import').click();
+  $('#file-import').addEventListener('change', (e) => { if (e.target.files[0]) importCsv(e.target.files[0]); e.target.value = ''; });
   $('#btn-help').onclick = () => { const d = $('#help'); d.open = true; d.scrollIntoView({ block: 'center' }); };
   $('#form').addEventListener('change', () => save(true));
 })();
