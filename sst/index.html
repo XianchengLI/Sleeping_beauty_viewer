@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support-Type Coding</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --muted:#5b6472; --line:#dde2ea; --accent:#2457a6; --ok:#2a8a4a; --warn:#b4541a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:var(--ink); background:var(--bg); }
+  header { background:var(--card); border-bottom:1px solid var(--line); padding:10px 20px; display:flex; gap:16px; align-items:center; flex-wrap:wrap; position:sticky; top:0; z-index:5; }
+  header h1 { font-size:18px; margin:0 12px 0 0; }
+  header .spacer { flex:1; }
+  .pill { background:#eef2f8; border-radius:999px; padding:4px 12px; font-size:14px; color:var(--muted); }
+  button { font:inherit; border:1px solid var(--line); background:var(--card); border-radius:8px; padding:8px 14px; cursor:pointer; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button:disabled { opacity:.5; cursor:default; }
+  #gate { max-width:520px; margin:60px auto; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:28px; }
+  #gate label { display:block; margin:14px 0 6px; font-weight:600; }
+  #gate input { width:100%; font:inherit; padding:10px; border:1px solid var(--line); border-radius:8px; }
+  #gate .err { color:var(--warn); margin-top:10px; min-height:1.4em; }
+  main { display:none; grid-template-columns: 230px 1fr 400px; gap:16px; padding:16px 20px; max-width:1560px; margin:0 auto; }
+  nav { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; align-self:start; position:sticky; top:66px; max-height:calc(100vh - 90px); overflow:auto; }
+  nav .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
+  nav .grid button { padding:5px 0; font-size:12px; }
+  nav .grid button.done { background:#e6f4ea; border-color:#bfe3c8; color:var(--ok); }
+  nav .grid button.partial { background:#fdf3e7; border-color:#f0d3b0; color:var(--warn); }
+  nav .grid button.current { outline:2px solid var(--accent); }
+  article { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px 26px; min-width:0; }
+  article h2 { margin:0 0 4px; font-size:22px; }
+  article .rid { color:var(--muted); font-size:14px; margin-bottom:14px; }
+  .post { padding:14px 16px; border-left:4px solid #c9d4e8; background:#fafbfd; border-radius:0 8px 8px 0; margin:10px 0; white-space:pre-wrap; }
+  aside { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; align-self:start; position:sticky; top:66px; max-height:calc(100vh - 90px); overflow:auto; }
+  fieldset { border:0; padding:0; margin:0 0 18px; }
+  fieldset[hidden] { display:none; }
+  legend { font-weight:600; margin-bottom:6px; }
+  .opt { display:flex; gap:8px; align-items:flex-start; padding:6px 8px; border-radius:8px; cursor:pointer; }
+  .opt:hover { background:#f2f5fa; }
+  .opt input { margin-top:5px; }
+  .opt .d { color:var(--muted); font-size:14px; }
+  textarea { width:100%; font:inherit; border:1px solid var(--line); border-radius:8px; padding:8px; min-height:60px; }
+  .rules { font-size:14px; color:var(--muted); background:#fbf8f1; border:1px solid #efe3c6; border-radius:8px; padding:10px 12px; margin:0 0 16px; }
+  .rules ul { margin:6px 0 0; padding-left:18px; }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+  .saved { font-size:13px; color:var(--ok); min-height:1.2em; margin-top:6px; }
+  #guide { display:none; position:fixed; inset:0; background:rgba(20,25,35,.45); z-index:20; }
+  #guide .panel { background:var(--card); max-width:860px; margin:30px auto; max-height:calc(100vh - 60px); overflow:auto; border-radius:12px; padding:26px 34px; box-shadow:0 10px 40px rgba(0,0,0,.25); }
+  #guide .panel h1 { font-size:22px; margin-top:0; }
+  #guide .panel h2 { font-size:18px; margin-top:26px; border-bottom:1px solid var(--line); padding-bottom:4px; }
+  #guide .panel h3 { font-size:16px; margin-top:18px; }
+  #guide .panel table { border-collapse:collapse; font-size:14px; }
+  #guide .panel td, #guide .panel th { border:1px solid var(--line); padding:4px 8px; vertical-align:top; }
+  #guide .close { position:sticky; top:0; float:right; }
+  @media (max-width:1100px) { main { grid-template-columns:1fr; } nav, aside { position:static; max-height:none; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Support-type coding</h1>
+  <span class="pill" id="who"></span>
+  <span class="pill" id="progress"></span>
+  <span class="spacer"></span>
+  <button id="btn-guide">Coding guide</button>
+  <button id="btn-export" title="Download your codes as a CSV file">Export CSV</button>
+  <button id="btn-import" title="Restore codes from a CSV exported earlier">Import CSV</button>
+  <input id="file-import" type="file" accept=".csv,text/csv" style="display:none">
+</header>
+
+<section id="gate">
+  <h2 style="margin-top:0">Support-type coding of opening posts</h2>
+  <p>174 opening posts from an online asthma community. Enter the password you were given and your initials. Your codes are saved in this browser as you go; export them as a CSV when you finish.</p>
+  <label for="pw">Password</label><input id="pw" type="password" autocomplete="off">
+  <label for="ini">Your initials</label><input id="ini" type="text" maxlength="6" placeholder="e.g. HEW">
+  <div class="err" id="gate-err"></div>
+  <div class="actions"><button class="primary" id="btn-open">Open</button></div>
+</section>
+
+<main>
+  <nav>
+    <div style="font-weight:600;margin-bottom:8px">Posts</div>
+    <div class="grid" id="navgrid"></div>
+  </nav>
+  <article id="thread"></article>
+  <aside>
+    <div class="rules"><b>Code what the poster is trying to do</b>, not how good the post is. Decide the primary purpose first, then the type. The full rules are under <b>Coding guide</b> in the header.</div>
+    <form id="form" onsubmit="return false">
+      <fieldset>
+        <legend>Step 1. Primary intent</legend>
+        <label class="opt"><input type="radio" name="intent" value="Seeking"><span><b>Seeking.</b> <span class="d">Wants to obtain something from others: information, advice, experiences, comfort.</span></span></label>
+        <label class="opt"><input type="radio" name="intent" value="Providing"><span><b>Providing.</b> <span class="d">Wants to give something to others: information, advice, resources, emotional support.</span></span></label>
+        <label class="opt"><input type="radio" name="intent" value="None"><span><b>None.</b> <span class="d">Neither seeks nor provides support: update, greeting, thanks, casual talk.</span></span></label>
+        <div class="d" style="margin:6px 8px 0;font-size:14px;color:var(--muted)">Mixed post: what is the main reason for posting, and what reply is expected? Incidental closers ("Thoughts?", "Anyone else?") do not make a post Seeking; polite openers ("Sorry to hear that") do not make it emotional. Still uncertain: Seeking > Providing > None.</div>
+      </fieldset>
+      <fieldset id="fs-type" hidden>
+        <legend>Step 2. Type of support <span id="type-who"></span></legend>
+        <label class="opt"><input type="radio" name="type" value="Informational"><span><b>Informational.</b> <span class="d" id="d-info"></span></span></label>
+        <label class="opt"><input type="radio" name="type" value="Emotional"><span><b>Emotional.</b> <span class="d" id="d-emo"></span></span></label>
+        <label class="opt"><input type="radio" name="type" value="Both"><span><b>Both.</b> <span class="d">Only when both elements are substantive parts of the post, not a brief worry or a polite phrase.</span></span></label>
+      </fieldset>
+      <fieldset id="fs-none" hidden>
+        <legend>Step 3. Check before confirming None</legend>
+        <div class="rules">Go back to Step 1 if the post contains any of these:
+          <ul>
+            <li>a request for advice, information or others' experiences, including implicit or one-line ones;</li>
+            <li>worry, fear, frustration, sadness, feeling overwhelmed, or symptoms reported with distress;</li>
+            <li>information, resources, advice or experience shared to inform others;</li>
+            <li>comfort, encouragement, empathy or validation directed at others.</li>
+          </ul></div>
+        <label class="opt"><input type="radio" name="none_check" value="COM"><span><b>COM (companionship).</b> <span class="d">Social connection is the main purpose; "That's nice!" or "Thanks for sharing!" would be a fitting reply.</span></span></label>
+        <label class="opt"><input type="radio" name="none_check" value="Ambiguous"><span><b>Ambiguous.</b> <span class="d">Fragment without context, near-empty, spam, garbled, bare link.</span></span></label>
+      </fieldset>
+      <fieldset id="fs-secondary" hidden>
+        <legend>Optional. Secondary intent</legend>
+        <label class="opt"><input type="checkbox" name="secondary" value="yes"><span><span id="sec-label"></span> <span class="d">Tick only if the other intent would pass the Step 1 tests on its own and is still not the primary purpose. This does not change the label.</span></span></label>
+      </fieldset>
+      <fieldset>
+        <legend>Notes (optional)</legend>
+        <textarea name="notes" placeholder="Doubts, borderline rules, anything the calibration meeting should see"></textarea>
+      </fieldset>
+      <div class="actions">
+        <button id="btn-prev">Previous</button>
+        <button class="primary" id="btn-next">Save and next</button>
+      </div>
+      <div class="saved" id="saved"></div>
+    </form>
+  </aside>
+</main>
+
+<div id="guide"><div class="panel"><button class="close" id="btn-guide-close">Close</button>
+<h1>Coding guide: social support type of forum opening posts</h1>
+<p>Version 0 (draft for the first-author trial, 2026-11-17). Condensed from the classifier prompts in
+<code>lurking/prompts/hierarchical_step*.txt</code>; every definition, indicator and decision rule below is taken
+from those prompts without change, and the examples are theirs. Not yet frozen: wording and examples may
+change after the 20-post trial and the calibration meeting; category boundaries may not.</p>
+<h2>1. What you are coding</h2>
+<p>Each row of the sheet is the opening post of a thread in the Asthma UK community on HealthUnlocked,
+shown as its title and body. Dates, view counts and usernames have been removed. Read the whole post,
+then record one label per post following the three steps below. Work on your own: do not discuss
+individual posts with the other coders until the calibration meeting, and do not look anything up.
+Record your doubts in the notes column rather than leaving a row blank.</p>
+<p>Codes record what the poster is trying to do, not how good the post is or how you would reply to it.</p>
+<h2>2. Step 1: primary intent (Seeking, Providing, None)</h2>
+<p><strong>Seeking.</strong> The poster wants to obtain something from others: information, advice, experiences or
+emotional comfort. Signals: direct questions; implicit questions ("I wonder if...", "Not sure what to
+do..."); describing a problem while hoping for input; asking about others' experiences in order to
+learn; expressing distress while looking for comfort or reassurance.</p>
+<p><strong>Providing.</strong> The poster wants to give something to others: information, advice, resources or
+emotional support. Signals: sharing tips, resources or useful information; advice drawn from personal
+experience; answering others' problems; encouragement or comfort; educational content or announcements
+to the community.</p>
+<p><strong>None.</strong> The post neither seeks nor provides support; it is social interaction. Signals: status
+updates with no request for advice; greetings, introductions, farewells; thanks for past help; humour
+and casual conversation; diary-style entries that expect no helpful reply.</p>
+<h3>The primary purpose test (for posts that mix elements)</h3>
+<p>Many posts both share and ask. Decide the main reason the person posted:</p>
+<ol>
+<li>Remove the secondary element in your mind. Does the post still make sense?</li>
+<li>What reply is the poster expecting: answers and advice, or acknowledgement?</li>
+<li>Where is most of the content?</li>
+</ol>
+<p>Code <strong>Seeking</strong> when the core purpose is to obtain information, advice or comfort, the question is
+substantive (specific, expecting a real answer), the sharing serves as background to the question, and
+the post would feel incomplete without the question.</p>
+<p>Code <strong>Providing</strong> when the core purpose is to share or help, any question is incidental (politeness
+or inviting engagement), and the post keeps its value without the trailing question.</p>
+<p><strong>Incidental questions do not make a post Seeking</strong>: "Let me know what you think", "Hope this helps,
+any questions?", "Thoughts?", "Anyone else?", "Does that make sense?". <strong>Substantive questions do</strong>:
+"What dosage worked for you?", "Should I see a specialist?", "Has anyone experienced X side effect?".</p>
+<p><strong>Incidental emotional openers do not make a post emotional</strong>: "Sorry to hear that" followed by
+advice, "That sounds tough" followed by suggestions. The post is still Providing (and will be
+Informational in Step 2). Extended empathy, meaningful encouragement or genuine validation that forms
+the main content is substantive emotional support.</p>
+<p><strong>The 80/20 rule.</strong> If about 80% or more of a post shares or informs and only a brief question closes
+it, the question is incidental: Providing. If the question drives the structure of the post, the
+sharing is background: Seeking.</p>
+<p><strong>Priority when still uncertain: Seeking &gt; Providing &gt; None.</strong> If there is any genuine seeking
+element, code Seeking.</p>
+<p>Worked examples (from the prompts):</p>
+<ul>
+<li>"I've been on Fostair for 3 months now. It's really helped my symptoms, especially at night. The key
+  is to rinse your mouth after using it. Let me know if you have questions!" Providing: 90% is shared
+  experience; the closer is incidental.</li>
+<li>"I was diagnosed last month and my GP put me on Ventolin. It helps sometimes but not always. Has
+  anyone else found Ventolin inconsistent? Should I ask about something stronger?" Seeking: the
+  background builds to two substantive questions.</li>
+<li>"Just wanted to update you all - the surgery went well! I'm home now recovering. Thanks for all the
+  good wishes." None: update and thanks, nothing sought or offered.</li>
+<li>"I'm really struggling lately. My asthma has been terrible and I don't know what to do anymore. The
+  medications aren't helping. I feel so exhausted." Seeking: distress with an implicit need for
+  support, even without a question.</li>
+<li>"I know exactly how you feel - it's so frightening when you can't breathe. You're not alone in
+  this... Hang in there." Providing (emotional support).</li>
+</ul>
+<h2>3. Step 2: type of support (Informational, Emotional, Both)</h2>
+<p>Only for posts coded Seeking or Providing.</p>
+<h3>3a. Seeking: what does this person need from the community?</h3>
+<p><strong>Informational (SIS).</strong> Facts, knowledge, advice or practical guidance: medical information,
+what to do and when, others' experiences to learn from, explanations, recommendations or referrals.
+Test: would a factual answer or practical advice satisfy the need?</p>
+<p><strong>Emotional (SES).</strong> Comfort, reassurance, validation or understanding: fear, worry, frustration,
+exhaustion, feeling overwhelmed; "Am I going to be okay?"; "Am I alone in feeling this?"; distress
+shared without a specific question. Test: would empathy, reassurance or "you're not alone" satisfy
+the primary need?</p>
+<p><strong>Both (SIS + SES).</strong> Only when there is a specific, substantive question and genuine emotional
+distress, both are significant parts of the post, and the poster would benefit from a factual answer
+and from emotional support. Typical shape: distress plus a specific question.</p>
+<p>Rules:</p>
+<ul>
+<li>Emotional words do not make a post Emotional. "I'm worried about my peak flow dropping - should I
+  increase my preventer?" is Informational: the worry is context, the question is the point.</li>
+<li>Questions do not make a post Informational. "Does anyone else feel like their life revolves around
+  asthma?" and "Am I overreacting to be this worried?" are Emotional: they ask for resonance or
+  reassurance, not facts.</li>
+<li>Background versus core. "I'm worried because X happened. What should I do about Y?" is
+  Informational. "I've tried X, Y, Z and nothing works. I'm exhausted and don't know how much more I
+  can take." is Emotional.</li>
+<li>Not Both: "Worried about symptoms, any advice?" is Informational (minimal emotion); "I'm really
+  struggling" with a vague "what should I do?" is Emotional (the question is not specific).</li>
+</ul>
+<p>Examples: "My peak flow has dropped from 450 to 350 over the past week. Is this concerning? Should I
+contact my GP or wait?" Informational. "I was diagnosed last month and I'm absolutely terrified... I
+don't know how to live with this." Emotional. "I'm really anxious about my upcoming appointment with
+the respiratory consultant. What questions should I be asking?... I'm scared I'll forget everything."
+Both.</p>
+<h3>3b. Providing: what is this person offering to the community?</h3>
+<p><strong>Informational (PIS).</strong> Facts, knowledge, advice or practical guidance: tips and strategies,
+experience shared in order to inform ("this worked for me"), resources and links, answers,
+suggestions including those in question form ("Have you tried X?"). Test: does it help someone know or
+do something?</p>
+<p><strong>Emotional (PES).</strong> Comfort, empathy, encouragement or validation: "I know how hard this is", "You
+can get through this", "It's normal to feel scared", "You're not alone". Test: is the poster mainly
+addressing someone's emotional needs?</p>
+<p><strong>Both (PIS + PES).</strong> Only when there is substantive practical information and substantive emotional
+support, each a meaningful part of the post, not a polite opener or closer.</p>
+<p>Rules:</p>
+<ul>
+<li>Polite openers and closers are not emotional support: "Sorry to hear that", "Hope this helps",
+  "That's tough", "Good luck!". A post that is advice framed by these phrases is Informational.</li>
+<li>Experience sharing can be either. "When I had X, I tried Y and it worked" informs: Informational.
+  "I went through the same thing - it's really hard but it does get better" comforts: Emotional. Ask
+  whether the purpose is to inform or to comfort.</li>
+<li>Suggestions in question form are Informational: "Have you tried X?", "Why don't you ask your GP about
+  Y?", "Have you thought about Z?".</li>
+</ul>
+<p>Examples: "When my asthma was at its worst, I found that sleeping with the head of my bed elevated
+really helped. Also, keeping a peak flow diary helped me spot patterns." Informational. "I completely
+understand how overwhelming this feels... You're doing better than you think. We're all here for
+you." Emotional. "Oh I really feel for you - that sounds incredibly stressful... What helped me was
+having a written action plan... But also, be kind to yourself." Both.</p>
+<h2>4. Step 3: posts coded None (COM, Ambiguous, or go back)</h2>
+<p>Before confirming None, check the post against the four support categories once more. If any of these
+applies, go back to Step 1 and recode the post as Seeking or Providing:</p>
+<ul>
+<li>a request for advice, information, clarification or others' experiences, including implicit ones
+  ("wondering if...", "not sure whether...") and one-line questions ("Mepolizumab - thoughts?");</li>
+<li>worry, fear, frustration, sadness or feeling overwhelmed, reassurance seeking, or symptoms reported
+  together with distress ("Feel like I keep getting fobbed off by my GP");</li>
+<li>shared information, resources, advice or experience meant to inform others ("FYI: new guidelines");</li>
+<li>comfort, encouragement, empathy or validation directed at others.</li>
+</ul>
+<p>If none applies, choose one of:</p>
+<p><strong>COM (companionship).</strong> Social connection is the main purpose and a reply such as "That's nice!" or
+"Thanks for sharing!" would be appropriate: greetings and introductions without a request; community
+updates that seek no input ("Good news - the results were negative"); thanks without a new question;
+humour and casual conversation.</p>
+<p><strong>Ambiguous.</strong> The post cannot be classified: fragments without context ("Sharon 49", "Twice a day
+for twenty years"), near-empty posts, spam, garbled text, bare links without context.</p>
+<p>Examples: "Update on sister - ... Dad phoned 111 at 2am for her. Sent to A&amp;E, given steroids." is
+Seeking, Emotional: a worried narrative, not a neutral update. "Good news - I am going to have surgery
+on my nasal polyps!... So roll on Friday." is COM. "Evening - Hi still here in hospital... Fingers
+crossed feeling better not perfect but better." is COM. "Sick again - I have a stinker of a cold...
+I have to consider pulling my son out of nursery." is Seeking, Emotional (frustration, a hard
+decision shared for support).</p>
+<h2>5. Recording</h2>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Values</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>intent</td>
+<td>Seeking, Providing, None</td>
+<td>every post</td>
+</tr>
+<tr>
+<td>type</td>
+<td>Informational, Emotional, Both</td>
+<td>intent is Seeking or Providing</td>
+</tr>
+<tr>
+<td>none_check</td>
+<td>COM, Ambiguous</td>
+<td>intent is None, after the Step 3 check</td>
+</tr>
+<tr>
+<td>secondary</td>
+<td>Seeking, Providing</td>
+<td>optional: the other intent is also substantively present (would pass the Step 1 tests on its own), but is not the primary purpose; leave blank otherwise</td>
+</tr>
+<tr>
+<td>notes</td>
+<td>free text</td>
+<td>optional; record doubts and borderline rules</td>
+</tr>
+</tbody>
+</table>
+<p>The secondary column does not change the label. It records how often the one-intent rule has to choose
+between two substantive intents in this corpus, and is reported separately.</p>
+<p>Final labels follow from the columns: Seeking + Informational = SIS; Seeking + Emotional = SES;
+Seeking + Both = SIS + SES; Providing + Informational = PIS; Providing + Emotional = PES; Providing +
+Both = PIS + PES; None + COM = COM; None + Ambiguous = excluded.</p>
+</div></div>
+
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  let posts = [], idx = 0, who = '', store = {};
+  const key = () => 'sstcoding_' + who;
+  const DESC = {
+    Seeking: { who: '(what does the poster need?)', info: 'Facts, advice, practical guidance, others’ experiences to learn from. Would a factual answer satisfy the need?', emo: 'Comfort, reassurance, validation, understanding. Would empathy or “you’re not alone” satisfy the primary need?' },
+    Providing: { who: '(what is the poster offering?)', info: 'Facts, tips, resources, experience shared to inform, suggestions in question form. Does it help someone know or do something?', emo: 'Comfort, empathy, encouragement, validation as the main content, not a polite opener or closer.' }
+  };
+
+  function load() { try { store = JSON.parse(localStorage.getItem(key()) || '{}'); } catch (e) { store = {}; } }
+  function persist() { try { localStorage.setItem(key(), JSON.stringify(store)); } catch (e) { alert('Could not save in this browser. Export your CSV now.'); } }
+
+  function decrypt(enc, password) {
+    const ct = CryptoJS.enc.Base64.parse(enc.ciphertext), iv = CryptoJS.enc.Base64.parse(enc.iv), salt = CryptoJS.enc.Base64.parse(enc.salt);
+    const k = CryptoJS.PBKDF2(password, salt, { keySize: (enc.keySize || 256) / 32, iterations: enc.iterations || 10000, hasher: CryptoJS.algo.SHA256 });
+    const d = CryptoJS.AES.decrypt({ ciphertext: ct }, k, { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
+    return JSON.parse(d.toString(CryptoJS.enc.Utf8));
+  }
+
+  async function open() {
+    const pw = $('#pw').value, ini = $('#ini').value.trim().toUpperCase();
+    const err = $('#gate-err');
+    if (!pw || !ini) { err.textContent = 'Password and initials are both needed.'; return; }
+    err.textContent = 'Decrypting...';
+    try {
+      const enc = await (await fetch('data/posts.encrypted', { cache: 'no-store' })).json();
+      posts = decrypt(enc, pw).posts;
+    } catch (e) { err.textContent = 'Wrong password, or the data could not be loaded.'; return; }
+    who = ini; load();
+    $('#who').textContent = 'Coder: ' + who;
+    $('#gate').style.display = 'none'; $('main').style.display = 'grid';
+    idx = posts.findIndex(p => !complete(store[p.id] || {})); if (idx < 0) idx = 0;
+    buildNav(); show();
+  }
+
+  function esc(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+
+  function syncVisibility() {
+    const f = $('#form'); const it = f.intent.value;
+    const sp = it === 'Seeking' || it === 'Providing';
+    $('#fs-type').hidden = !sp; $('#fs-none').hidden = it !== 'None'; $('#fs-secondary').hidden = !sp;
+    if (sp) {
+      $('#type-who').textContent = DESC[it].who; $('#d-info').textContent = DESC[it].info; $('#d-emo').textContent = DESC[it].emo;
+      $('#sec-label').innerHTML = '<b>' + (it === 'Seeking' ? 'Providing' : 'Seeking') + ' is also substantively present.</b>';
+    }
+  }
+
+  function show() {
+    const p = posts[idx];
+    $('#thread').innerHTML = `<div class="rid">${p.id} · post ${idx + 1} of ${posts.length} · ${p.body.split(/\s+/).length} words</div><h2>${esc(p.title) || '<span style="color:var(--muted)">(no title)</span>'}</h2><div class="post">${esc(p.body)}</div>`;
+    const f = $('#form'); f.reset();
+    const s = store[p.id] || {};
+    if (s.intent) f.intent.value = s.intent;
+    if (s.type) f.type.value = s.type;
+    if (s.none_check) f.none_check.value = s.none_check;
+    f.secondary.checked = !!s.secondary;
+    f.notes.value = s.notes || '';
+    if (!s.opened_at) { store[p.id] = Object.assign({}, s, { opened_at: new Date().toISOString() }); persist(); }
+    syncVisibility();
+    $('#saved').textContent = '';
+    $('#btn-prev').disabled = idx === 0;
+    $('#btn-next').textContent = idx === posts.length - 1 ? 'Save' : 'Save and next';
+    document.querySelectorAll('#navgrid button').forEach((b, i) => b.classList.toggle('current', i === idx));
+    window.scrollTo(0, 0); $('#thread').scrollIntoView({ block: 'start' });
+    progress();
+  }
+
+  function read() {
+    const f = $('#form'); const it = f.intent.value; const sp = it === 'Seeking' || it === 'Providing';
+    return {
+      intent: it,
+      type: sp ? f.type.value : '',
+      none_check: it === 'None' ? f.none_check.value : '',
+      secondary: sp && f.secondary.checked ? (it === 'Seeking' ? 'Providing' : 'Seeking') : '',
+      notes: f.notes.value.trim()
+    };
+  }
+  function complete(r) { return !!(r.intent && ((r.intent === 'None' && r.none_check) || (r.intent !== 'None' && r.type))); }
+  function touched(r) { return !!(r.intent || r.notes); }
+
+  function paint(i, r) {
+    const b = document.querySelectorAll('#navgrid button')[i];
+    b.classList.toggle('done', complete(r)); b.classList.toggle('partial', !complete(r) && touched(r));
+  }
+
+  function save(silent) {
+    const r = read(), p = posts[idx];
+    if (!touched(r)) return false;
+    store[p.id] = Object.assign({}, store[p.id] || {}, r, { saved_at: new Date().toISOString() }); persist();
+    paint(idx, r);
+    if (!silent) $('#saved').textContent = complete(r) ? 'Saved.' : 'Saved (incomplete: the type, or the Step 3 choice, is still missing).';
+    progress();
+    return complete(r);
+  }
+
+  function progress() {
+    const n = posts.filter(p => complete(store[p.id] || {})).length;
+    $('#progress').textContent = `${n} / ${posts.length} coded`;
+  }
+
+  function buildNav() {
+    const g = $('#navgrid'); g.innerHTML = '';
+    posts.forEach((p, i) => {
+      const b = document.createElement('button'); b.textContent = p.id;
+      b.onclick = () => { save(true); idx = i; show(); };
+      g.appendChild(b); paint(i, store[p.id] || {});
+    });
+  }
+
+  function exportCsv() {
+    save(true);
+    const q = (s) => '"' + String(s || '').replace(/"/g, '""') + '"';
+    const rows = ['coding_id,intent,type,none_check,secondary,notes,opened_at,saved_at'];
+    posts.forEach(p => { const r = store[p.id] || {}; rows.push([p.id, r.intent || '', r.type || '', r.none_check || '', r.secondary || '', q(r.notes), r.opened_at || '', r.saved_at || ''].join(',')); });
+    const missing = posts.filter(p => !complete(store[p.id] || {})).length;
+    const blob = new Blob([rows.join('\n') + '\n'], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `sst_${who}.csv`; a.click();
+    if (missing) alert(`${missing} post(s) are not fully coded yet. The file was exported anyway; you can export again later.`);
+  }
+
+  function parseCsv(text) {
+    const rows = [], re = /("([^"]|"")*"|[^,\n\r]*)(,|\r?\n|$)/g;
+    let row = [], m;
+    while ((m = re.exec(text)) !== null) {
+      let v = m[1]; if (v.startsWith('"')) v = v.slice(1, -1).replace(/""/g, '"');
+      row.push(v);
+      if (m[3] !== ',') { rows.push(row); row = []; }
+      if (m[0] === '') { re.lastIndex++; }
+      if (re.lastIndex >= text.length) break;
+    }
+    return rows.filter(r => r.length > 1 || (r[0] && r[0].trim()));
+  }
+  function importCsv(file) {
+    const rd = new FileReader();
+    rd.onload = () => {
+      const rows = parseCsv(rd.result.replace(/^﻿/, ''));
+      const head = rows.shift().map(h => h.trim().toLowerCase());
+      const ix = (n) => head.indexOf(n);
+      if (ix('coding_id') < 0 || ix('intent') < 0) { alert('This does not look like an exported coding file.'); return; }
+      let n = 0;
+      rows.forEach(r => {
+        const id = (r[ix('coding_id')] || '').trim();
+        if (!posts.some(p => p.id === id)) return;
+        const g = (k) => ix(k) < 0 ? '' : (r[ix(k)] || '').trim();
+        store[id] = { intent: g('intent'), type: g('type'), none_check: g('none_check'), secondary: g('secondary'), notes: g('notes'), opened_at: g('opened_at'), saved_at: g('saved_at') };
+        n++;
+      });
+      persist(); buildNav(); show();
+      alert(`Imported ${n} rows. They replace what was saved here for those posts.`);
+    };
+    rd.readAsText(file);
+  }
+
+  $('#btn-open').onclick = open;
+  $('#pw').addEventListener('keydown', e => { if (e.key === 'Enter') open(); });
+  $('#ini').addEventListener('keydown', e => { if (e.key === 'Enter') open(); });
+  $('#btn-next').onclick = () => { const ok = save(); if (idx < posts.length - 1) { idx++; show(); } else if (ok) { $('#saved').textContent = 'Saved. This was the last post; use Export CSV when all are done.'; } };
+  $('#btn-prev').onclick = () => { save(true); if (idx > 0) { idx--; show(); } };
+  $('#btn-export').onclick = exportCsv;
+  $('#btn-import').onclick = () => $('#file-import').click();
+  $('#file-import').addEventListener('change', (e) => { if (e.target.files[0]) importCsv(e.target.files[0]); e.target.value = ''; });
+  $('#btn-guide').onclick = () => { $('#guide').style.display = 'block'; };
+  $('#btn-guide-close').onclick = () => { $('#guide').style.display = 'none'; };
+  $('#guide').addEventListener('click', (e) => { if (e.target === $('#guide')) $('#guide').style.display = 'none'; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#guide').style.display = 'none'; });
+  $('#form').addEventListener('change', () => { syncVisibility(); save(true); });
+})();
+</script>
+</body>
+</html>
