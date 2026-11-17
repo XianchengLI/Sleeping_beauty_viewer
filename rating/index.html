@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thread Rating</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --muted:#5b6472; --line:#dde2ea; --accent:#2457a6; --ok:#2a8a4a; --warn:#b4541a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:var(--ink); background:var(--bg); }
+  header { background:var(--card); border-bottom:1px solid var(--line); padding:10px 20px; display:flex; gap:16px; align-items:center; flex-wrap:wrap; position:sticky; top:0; z-index:5; }
+  header h1 { font-size:18px; margin:0 12px 0 0; }
+  header .spacer { flex:1; }
+  .pill { background:#eef2f8; border-radius:999px; padding:4px 12px; font-size:14px; color:var(--muted); }
+  button { font:inherit; border:1px solid var(--line); background:var(--card); border-radius:8px; padding:8px 14px; cursor:pointer; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button:disabled { opacity:.5; cursor:default; }
+  #gate { max-width:520px; margin:60px auto; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:28px; }
+  #gate label { display:block; margin:14px 0 6px; font-weight:600; }
+  #gate input { width:100%; font:inherit; padding:10px; border:1px solid var(--line); border-radius:8px; }
+  #gate .err { color:var(--warn); margin-top:10px; min-height:1.4em; }
+  main { display:none; grid-template-columns: 220px 1fr 380px; gap:16px; padding:16px 20px; max-width:1500px; margin:0 auto; }
+  nav { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; align-self:start; position:sticky; top:66px; max-height:calc(100vh - 90px); overflow:auto; }
+  nav .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+  nav .grid button { padding:6px 0; font-size:13px; }
+  nav .grid button.done { background:#e6f4ea; border-color:#bfe3c8; color:var(--ok); }
+  nav .grid button.current { outline:2px solid var(--accent); }
+  article { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px 26px; min-width:0; }
+  article h2 { margin:0 0 4px; font-size:22px; }
+  article .rid { color:var(--muted); font-size:14px; margin-bottom:14px; }
+  .post { padding:14px 16px; border-left:4px solid #c9d4e8; background:#fafbfd; border-radius:0 8px 8px 0; margin:10px 0; white-space:pre-wrap; }
+  .post.reply { border-left-color:#e3e7ee; }
+  .post .lab { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-bottom:6px; white-space:normal; }
+  aside { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; align-self:start; position:sticky; top:66px; max-height:calc(100vh - 90px); overflow:auto; }
+  fieldset { border:0; padding:0; margin:0 0 18px; }
+  legend { font-weight:600; margin-bottom:6px; }
+  .opt { display:flex; gap:8px; align-items:flex-start; padding:6px 8px; border-radius:8px; cursor:pointer; }
+  .opt:hover { background:#f2f5fa; }
+  .opt input { margin-top:5px; }
+  .opt .d { color:var(--muted); font-size:14px; }
+  textarea { width:100%; font:inherit; border:1px solid var(--line); border-radius:8px; padding:8px; min-height:60px; }
+  .rules { font-size:14px; color:var(--muted); background:#fbf8f1; border:1px solid #efe3c6; border-radius:8px; padding:10px 12px; margin:0 0 16px; }
+  .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+  details { margin-top:14px; font-size:14px; color:var(--muted); }
+  .saved { font-size:13px; color:var(--ok); min-height:1.2em; margin-top:6px; }
+  @media (max-width:1100px) { main { grid-template-columns:1fr; } nav, aside { position:static; max-height:none; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Thread rating</h1>
+  <span class="pill" id="who"></span>
+  <span class="pill" id="progress"></span>
+  <span class="spacer"></span>
+  <button id="btn-export" title="Download your ratings as a CSV file">Export CSV</button>
+  <button id="btn-help">Instructions</button>
+</header>
+
+<section id="gate">
+  <h2 style="margin-top:0">Blinded thread rating</h2>
+  <p>60 threads from an online asthma community. Enter the password you were given and your initials. Your ratings are saved in this browser as you go; export them as a CSV when you finish.</p>
+  <label for="pw">Password</label><input id="pw" type="password" autocomplete="off">
+  <label for="ini">Your initials</label><input id="ini" type="text" maxlength="6" placeholder="e.g. HEW">
+  <div class="err" id="gate-err"></div>
+  <div class="actions"><button class="primary" id="btn-open">Open</button></div>
+</section>
+
+<main>
+  <nav>
+    <div style="font-weight:600;margin-bottom:8px">Threads</div>
+    <div class="grid" id="navgrid"></div>
+  </nav>
+  <article id="thread"></article>
+  <aside>
+    <div class="rules"><b>Rate the thread as a whole</b> (opening post plus the replies shown), as if a community member came across it today. Judge the content, not the writing or the length. Judge as of today, not the posting date.</div>
+    <form id="form" onsubmit="return false">
+      <fieldset>
+        <legend>1. Is the topic still of interest to community members today?</legend>
+        <label class="opt"><input type="radio" name="interest" value="yes"> yes</label>
+        <label class="opt"><input type="radio" name="interest" value="no"> no</label>
+      </fieldset>
+      <fieldset>
+        <legend>2. Would this thread be useful to a community member reading it today?</legend>
+        <label class="opt"><input type="radio" name="usefulness" value="0"><span><b>0 Not useful.</b> <span class="d">Nothing another reader could take away: a congratulation, venting, a one-off personal situation with no general point, or content that has become outdated.</span></span></label>
+        <label class="opt"><input type="radio" name="usefulness" value="1"><span><b>1 Marginally useful.</b> <span class="d">The question or experience is one other members also meet, but the thread gives little beyond that: answers thin or unresolved, or the takeaway only fits someone in nearly the same situation. A long thread of personal experiences with only scattered takeaways is a 1.</span></span></label>
+        <label class="opt"><input type="radio" name="usefulness" value="2"><span><b>2 Useful.</b> <span class="d">A reader with a related question would find a usable answer, practical knowledge or a relevant experience that still holds today. A short thread that fully answers a narrow question, with an answer still valid, is a 2.</span></span></label>
+        <label class="opt"><input type="radio" name="usefulness" value="3"><span><b>3 Very useful.</b> <span class="d">A reader could be pointed to this thread as a reference on its topic.</span></span></label>
+        <div class="d" style="margin:6px 8px 0;font-size:14px;color:var(--muted)">Lower the score by one level for advice that is clearly outdated or possibly unsafe today; score 0 if that advice is the main content. Do not lower it when another reply corrects it, when it is framed as not being advice, or when it is a dated side remark in a thread whose main content still holds.</div>
+      </fieldset>
+      <fieldset>
+        <legend>3. Optional: a questionable piece of advice that another reply corrects?</legend>
+        <label class="opt"><input type="checkbox" name="corrected_advice" value="yes"> yes, I noticed one</label>
+      </fieldset>
+      <fieldset>
+        <legend>4. Do you remember having seen this thread before?</legend>
+        <label class="opt"><input type="radio" name="seen_before" value="yes"> yes</label>
+        <label class="opt"><input type="radio" name="seen_before" value="no"> no</label>
+      </fieldset>
+      <fieldset>
+        <legend>5. Comment (optional)</legend>
+        <textarea name="comment"></textarea>
+      </fieldset>
+      <div class="actions">
+        <button id="btn-prev">Previous</button>
+        <button class="primary" id="btn-next">Save and next</button>
+      </div>
+      <div class="saved" id="saved"></div>
+    </form>
+    <details id="help">
+      <summary>Instructions</summary>
+      <p>Rate alone, in one or more sittings, without discussing threads with the other raters until all forms are returned. Threads are anonymised and shuffled; dates, view counts and usernames have been removed. Do not try to work out when a thread was posted or how much it was read.</p>
+      <p>Every answer is saved in this browser automatically when you press "Save and next" or move to another thread. When all 60 are done, press "Export CSV" and send the file back. If you change computer or browser, export first: the saved answers do not follow you.</p>
+    </details>
+  </aside>
+</main>
+
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  let threads = [], idx = 0, who = '', store = {};
+  const key = () => 'sbrating_' + who;
+
+  function load() { try { store = JSON.parse(localStorage.getItem(key()) || '{}'); } catch (e) { store = {}; } }
+  function persist() { try { localStorage.setItem(key(), JSON.stringify(store)); } catch (e) { alert('Could not save in this browser. Export your CSV now.'); } }
+
+  function decrypt(enc, password) {
+    const ct = CryptoJS.enc.Base64.parse(enc.ciphertext), iv = CryptoJS.enc.Base64.parse(enc.iv), salt = CryptoJS.enc.Base64.parse(enc.salt);
+    const k = CryptoJS.PBKDF2(password, salt, { keySize: (enc.keySize || 256) / 32, iterations: enc.iterations || 10000, hasher: CryptoJS.algo.SHA256 });
+    const d = CryptoJS.AES.decrypt({ ciphertext: ct }, k, { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
+    return JSON.parse(d.toString(CryptoJS.enc.Utf8));
+  }
+
+  async function open() {
+    const pw = $('#pw').value, ini = $('#ini').value.trim().toUpperCase();
+    const err = $('#gate-err');
+    if (!pw || !ini) { err.textContent = 'Password and initials are both needed.'; return; }
+    err.textContent = 'Decrypting...';
+    try {
+      const enc = await (await fetch('data/threads.encrypted', { cache: 'no-store' })).json();
+      threads = decrypt(enc, pw).threads;
+    } catch (e) { err.textContent = 'Wrong password, or the data could not be loaded.'; return; }
+    who = ini; load();
+    $('#who').textContent = 'Rater: ' + who;
+    $('#gate').style.display = 'none'; $('main').style.display = 'grid';
+    idx = threads.findIndex(t => !store[t.id] || !store[t.id].usefulness); if (idx < 0) idx = 0;
+    buildNav(); show();
+  }
+
+  function esc(s) { return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+
+  function show() {
+    const t = threads[idx];
+    let h = `<div class="rid">${t.id} · thread ${idx + 1} of ${threads.length} · ${t.replies.length} repl${t.replies.length === 1 ? 'y' : 'ies'} shown</div><h2>${esc(t.title)}</h2>`;
+    h += `<div class="post"><div class="lab">Opening post</div>${esc(t.op)}</div>`;
+    t.replies.forEach((r, i) => { h += `<div class="post reply"><div class="lab">Reply ${i + 1}</div>${esc(r)}</div>`; });
+    $('#thread').innerHTML = h;
+    const f = $('#form'); f.reset();
+    const s = store[t.id] || {};
+    if (s.interest) f.interest.value = s.interest;
+    if (s.usefulness !== undefined && s.usefulness !== '') f.usefulness.value = s.usefulness;
+    f.corrected_advice.checked = s.corrected_advice === 'yes';
+    if (s.seen_before) f.seen_before.value = s.seen_before;
+    f.comment.value = s.comment || '';
+    $('#saved').textContent = '';
+    $('#btn-prev').disabled = idx === 0;
+    $('#btn-next').textContent = idx === threads.length - 1 ? 'Save' : 'Save and next';
+    document.querySelectorAll('#navgrid button').forEach((b, i) => b.classList.toggle('current', i === idx));
+    window.scrollTo(0, 0); $('#thread').scrollIntoView({ block: 'start' });
+    progress();
+  }
+
+  function read() {
+    const f = $('#form');
+    return { interest: f.interest.value, usefulness: f.usefulness.value, corrected_advice: f.corrected_advice.checked ? 'yes' : '', seen_before: f.seen_before.value, comment: f.comment.value.trim() };
+  }
+  function complete(r) { return r.interest && r.usefulness !== '' && r.seen_before; }
+
+  function save(silent) {
+    const r = read(), t = threads[idx];
+    if (!r.interest && r.usefulness === '' && !r.seen_before && !r.comment && !r.corrected_advice) return true;
+    store[t.id] = r; persist();
+    document.querySelectorAll('#navgrid button')[idx].classList.toggle('done', complete(r));
+    if (!silent) $('#saved').textContent = complete(r) ? 'Saved.' : 'Saved (incomplete: answer 1, 2 and 4).';
+    progress();
+    return complete(r);
+  }
+
+  function progress() {
+    const n = threads.filter(t => store[t.id] && complete(store[t.id])).length;
+    $('#progress').textContent = `${n} / ${threads.length} rated`;
+  }
+
+  function buildNav() {
+    const g = $('#navgrid'); g.innerHTML = '';
+    threads.forEach((t, i) => {
+      const b = document.createElement('button'); b.textContent = t.id;
+      if (store[t.id] && complete(store[t.id])) b.classList.add('done');
+      b.onclick = () => { save(true); idx = i; show(); };
+      g.appendChild(b);
+    });
+  }
+
+  function exportCsv() {
+    save(true);
+    const q = (s) => '"' + String(s || '').replace(/"/g, '""') + '"';
+    const rows = ['rid,interest,usefulness,corrected_advice,seen_before,comment'];
+    threads.forEach(t => { const r = store[t.id] || {}; rows.push([t.id, r.interest || '', r.usefulness === undefined ? '' : r.usefulness, r.corrected_advice || '', r.seen_before || '', q(r.comment)].join(',')); });
+    const missing = threads.filter(t => !store[t.id] || !complete(store[t.id])).length;
+    const blob = new Blob([rows.join('\n') + '\n'], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `rating_${who}.csv`; a.click();
+    if (missing) alert(`${missing} thread(s) are not fully rated yet. The file was exported anyway; you can export again later.`);
+  }
+
+  $('#btn-open').onclick = open;
+  $('#pw').addEventListener('keydown', e => { if (e.key === 'Enter') open(); });
+  $('#ini').addEventListener('keydown', e => { if (e.key === 'Enter') open(); });
+  $('#btn-next').onclick = () => { const ok = save(); if (idx < threads.length - 1) { idx++; show(); } else if (ok) { $('#saved').textContent = 'Saved. This was the last thread; use Export CSV when all are done.'; } };
+  $('#btn-prev').onclick = () => { save(true); if (idx > 0) { idx--; show(); } };
+  $('#btn-export').onclick = exportCsv;
+  $('#btn-help').onclick = () => { const d = $('#help'); d.open = true; d.scrollIntoView({ block: 'center' }); };
+  $('#form').addEventListener('change', () => save(true));
+})();
+</script>
+</body>
+</html>
