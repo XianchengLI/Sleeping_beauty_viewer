@@ -69,7 +69,7 @@
 
 <section id="gate">
   <h2 style="margin-top:0">Support-type coding of opening posts</h2>
-  <p>20 opening posts from an online asthma community. This is a 20-post trial run: it checks the page and tells us how long coding takes. Enter the password you were given and your initials. Your codes are saved in this browser as you go; export them as a CSV when you finish.</p>
+  <p>20 opening posts from an online asthma community. This is the second round of the 20-post trial, with the revised guide. Enter the password you were given and your initials. Your codes are saved in this browser as you go; export them as a CSV when you finish.</p>
   <label for="pw">Password</label><input id="pw" type="password" autocomplete="off">
   <label for="ini">Your initials</label><input id="ini" type="text" maxlength="6" placeholder="e.g. HEW">
   <div class="err" id="gate-err"></div>
@@ -91,7 +91,7 @@
         <label class="opt"><input type="radio" name="intent" value="Seeking"><span><b>Seeking.</b> <span class="d">Wants to obtain something from others: information, advice, experiences, comfort.</span></span></label>
         <label class="opt"><input type="radio" name="intent" value="Providing"><span><b>Providing.</b> <span class="d">Wants to give something to others: information, advice, resources, emotional support.</span></span></label>
         <label class="opt"><input type="radio" name="intent" value="None"><span><b>None.</b> <span class="d">Neither seeks nor provides support: update, greeting, thanks, casual talk.</span></span></label>
-        <div class="d" style="margin:6px 8px 0;font-size:14px;color:var(--muted)">Mixed post: what is the main reason for posting, and what reply is expected? Incidental closers ("Thoughts?", "Anyone else?") do not make a post Seeking; polite openers ("Sorry to hear that") do not make it emotional. Still uncertain: Seeking > Providing > None.</div>
+        <div class="d" style="margin:6px 8px 0;font-size:14px;color:var(--muted)"><b>Go by signals.</b> A request (question, advice or reassurance request; closers like "Thoughts?" do not count) makes it Seeking. Written for others (tips, advice, comfort, announcements, campaigns) makes it Providing. Both: is the sharing 80% or more and complete without the question? Providing; otherwise Seeking. <b>Own story with no request:</b> Seeking only with a first-person feeling statement ("I'm so fed up", "I can't cope", "sorry for the rant"); otherwise None. Tired, exhausted, breathless are bodily states, not feelings.</div>
       </fieldset>
       <fieldset id="fs-type" hidden>
         <legend>Step 2. Type of support <span id="type-who"></span></legend>
@@ -102,14 +102,8 @@
       </fieldset>
       <fieldset id="fs-none" hidden>
         <legend>Step 3. Check before confirming None</legend>
-        <div class="rules">Go back to Step 1 if the post contains any of these:
-          <ul>
-            <li>a request for advice, information or others' experiences, including implicit or one-line ones;</li>
-            <li>worry, fear, frustration, sadness, feeling overwhelmed, or symptoms reported with distress;</li>
-            <li>information, resources, advice or experience shared to inform others;</li>
-            <li>comfort, encouragement, empathy or validation directed at others.</li>
-          </ul></div>
-        <label class="opt"><input type="radio" name="none_check" value="COM"><span><b>COM (companionship).</b> <span class="d">Social connection is the main purpose; "That's nice!" or "Thanks for sharing!" would be a fitting reply.</span></span></label>
+        <div class="rules">Go back to Step 1 if the post contains a request, is written for others, or is an account of the poster's own events with a first-person feeling statement. Otherwise choose below.</div>
+        <label class="opt"><input type="radio" name="none_check" value="COM"><span><b>COM (companionship).</b> <span class="d">Greeting, introduction, thanks, update, good news, casual talk, or an account of events without a feeling statement.</span></span></label>
         <label class="opt"><input type="radio" name="none_check" value="Ambiguous"><span><b>Ambiguous.</b> <span class="d">Fragment without context, near-empty, spam, garbled, bare link.</span></span></label>
       </fieldset>
       <fieldset id="fs-secondary" hidden>
@@ -132,187 +126,93 @@
 <div id="guide"><div class="panel"><button class="close" id="btn-guide-close">Close and start coding</button>
 <p style="color:var(--muted);font-size:14px">The full coding guide. The rules you need while coding are repeated next to the answer options; come here when a case needs more detail or an example.</p>
 <h1>Coding guide: social support type of forum opening posts</h1>
-<p>Version 0.1 (draft for the first-author trial, 2026-11-17; decision-order blocks added the same day after 14 trial posts; question-object rule, campaign rule and own-story rule added 2026-11-23 after the 20-post trial; narrative rule and
-substantial-distress signals fixed 2026-11-24). Condensed from the classifier prompts in
-<code>lurking/prompts/hierarchical_step*.txt</code>; every definition, indicator and decision rule below is taken
-from those prompts without change, and the examples are theirs. Not yet frozen: wording and examples may
-change after the 20-post trial and the calibration meeting; category boundaries may not. Sentences in
-red were added on 2026-11-23 after the trial and are to be confirmed at the calibration meeting.</p>
+<p>Version 1 draft (2026-11-24), for confirmation at the calibration meeting. It replaces version 0 and is
+written as signal rules: label a post by the signals it contains, not by what the poster might be feeling
+beyond the text. The classifier prompts (version 4) use the same definitions and the same decision
+rules, word for word where possible.</p>
 <h2>1. What you are coding</h2>
-<p>Each row of the sheet is the opening post of a thread in the Asthma UK community on HealthUnlocked,
-shown as its title and body. Dates, view counts and usernames have been removed. Read the whole post,
-then record one label per post following the three steps below. Work on your own: do not discuss
-individual posts with the other coders until the calibration meeting, and do not look anything up.
-Record your doubts in the notes column rather than leaving a row blank.</p>
-<p>Codes record what the poster is trying to do, not how good the post is or how you would reply to it.</p>
-<h2>2. Step 1: primary intent (Seeking, Providing, None)</h2>
-<p><strong>Seeking.</strong> The poster wants to obtain something from others: information, advice, experiences or
-emotional comfort. Signals: direct questions; implicit questions ("I wonder if...", "Not sure what to
-do..."); describing a problem while hoping for input; asking about others' experiences in order to
-learn; expressing distress while looking for comfort or reassurance.</p>
-<p><strong>Providing.</strong> The poster wants to give something to others: information, advice, resources or
-emotional support. Signals: sharing tips, resources or useful information; advice drawn from personal
-experience; answering others' problems; encouragement or comfort; educational content or announcements
-to the community. <span style="color:#c0392b">Opinion pieces, warnings, campaigns and petitions addressed to the community, by a
-member or an organisation, are Providing (Informational) even when written with feeling, as long as
-nothing is asked for the poster.</span></p>
-<p><strong>None.</strong> The post neither seeks nor provides support; it is social interaction. Signals: status
-updates with no request for advice; greetings, introductions, farewells; thanks for past help; humour
-and casual conversation; diary-style entries that expect no helpful reply.</p>
-<h3>The primary purpose test (for posts that mix elements)</h3>
-<p>Many posts both share and ask. Decide the main reason the person posted:</p>
+<p>Each item is the opening post of a thread in the Asthma UK community on HealthUnlocked, shown as title
+and body. Record one label per post in up to three steps. Work on your own, do not discuss individual
+posts with the other coders, and write a note whenever you are unsure.</p>
+<h2>2. Definitions</h2>
+<p><strong>Request.</strong> Something the poster asks readers for: a direct question, or a request for advice,
+information or others' experience; an implicit question ("I wonder if...", "not sure whether I
+should..."); a validation question about a feeling ("Does anyone else feel...?", "Am I overreacting?");
+an explicit request for reassurance or encouragement. Conversational closers are not requests:
+"Thoughts?", "Anyone else?", "Let me know what you think", "Any questions?", "Have you tried X?" (a
+suggestion).</p>
+<p><strong>Feeling statement.</strong> The poster states their own emotion in the first person: "I feel / I am / I'm" +
+an emotion word (worried, scared, anxious, fed up, frustrated, down, overwhelmed, dreading, terrified,
+desperate), or helplessness ("I can't cope", "at my wit's end", "don't know what else to do", "it's all
+too much"), or a venting label ("sorry for the rant"). Not feeling statements: bodily states (tired,
+exhausted, breathless, "breathing is exhausting"); worrying content without a stated emotion (an
+account of an A&amp;E visit, a relative's illness); apologies, emojis, hopes and pleasantries ("sorry this
+isn't a question", "fingers crossed", "glad to find this site").</p>
+<p><strong>Strong feeling.</strong> Any one of: a feeling statement with an intensifier or a strong word ("so / really /
+very / absolutely" + emotion word; terrified, desperate, fed up, overwhelmed, dreading); helplessness;
+a venting label; an explicit request for reassurance or encouragement. A single mild emotion word used
+as a lead-in to a question ("worried", "concerned", "puzzled", "shocked", "a bit nervous", "scared to
+try X") is not a strong feeling.</p>
+<p><strong>Written for others.</strong> The post exists to give readers something: information, tips, resources, or
+experience told so that others can use it; advice or suggestions, including in question form; comfort,
+empathy or encouragement addressed to readers; announcements, opinion pieces, warnings, campaigns and
+petitions addressed to the community, by a member or an organisation, even when written with feeling.
+Not written for others: facts about the poster's own case mentioned in a thanks post, an introduction
+or an update.</p>
+<h2>3. Step 1: primary intent (Seeking, Providing, None)</h2>
+<p>Apply in order:</p>
 <ol>
-<li>Remove the secondary element in your mind. Does the post still make sense?</li>
-<li>What reply is the poster expecting: answers and advice, or acknowledgement?</li>
-<li>Where is most of the content?</li>
+<li>The post contains a request, and the request is what the post is for: <strong>Seeking</strong>.</li>
+<li>The post is written for others and contains no request beyond a conversational closer: <strong>Providing</strong>.</li>
+<li>Both a request and content for others: remove the question in your mind. If the post still stands as
+   a complete contribution and the sharing is about 80% or more of it, <strong>Providing</strong>; if the sharing is
+   background leading up to the question, <strong>Seeking</strong>; still undecided, <strong>Seeking</strong>.</li>
+<li>No request and not written for others (an account of the poster's own events, treatments,
+   appointments or news): with a feeling statement, <strong>Seeking</strong>; without one, <strong>None</strong>.</li>
+<li>Greetings, introductions, thanks, good news, humour and casual talk with no request: <strong>None</strong>.</li>
 </ol>
-<p>Code <strong>Seeking</strong> when the core purpose is to obtain information, advice or comfort, the question is
-substantive (specific, expecting a real answer), the sharing serves as background to the question, and
-the post would feel incomplete without the question.</p>
-<p>Code <strong>Providing</strong> when the core purpose is to share or help, any question is incidental (politeness
-or inviting engagement), and the post keeps its value without the trailing question.</p>
-<p><strong>Incidental questions do not make a post Seeking</strong>: "Let me know what you think", "Hope this helps,
-any questions?", "Thoughts?", "Anyone else?", "Does that make sense?". <strong>Substantive questions do</strong>:
-"What dosage worked for you?", "Should I see a specialist?", "Has anyone experienced X side effect?".</p>
-<p><strong>Incidental emotional openers do not make a post emotional</strong>: "Sorry to hear that" followed by
-advice, "That sounds tough" followed by suggestions. The post is still Providing (and will be
-Informational in Step 2). Extended empathy, meaningful encouragement or genuine validation that forms
-the main content is substantive emotional support.</p>
-<p><strong>The 80/20 rule.</strong> If about 80% or more of a post shares or informs and only a brief question closes
-it, the question is incidental: Providing. If the question drives the structure of the post, the
-sharing is background: Seeking.</p>
-<p><strong>Priority when still uncertain: Seeking &gt; Providing &gt; None.</strong> If there is any genuine seeking
-element, code Seeking.</p>
-<p>Worked examples (from the prompts):</p>
-<ul>
-<li>"I've been on Fostair for 3 months now. It's really helped my symptoms, especially at night. The key
-  is to rinse your mouth after using it. Let me know if you have questions!" Providing: 90% is shared
-  experience; the closer is incidental.</li>
-<li>"I was diagnosed last month and my GP put me on Ventolin. It helps sometimes but not always. Has
-  anyone else found Ventolin inconsistent? Should I ask about something stronger?" Seeking: the
-  background builds to two substantive questions.</li>
-<li>"Just wanted to update you all - the surgery went well! I'm home now recovering. Thanks for all the
-  good wishes." None: update and thanks, nothing sought or offered.</li>
-<li>"I'm really struggling lately. My asthma has been terrible and I don't know what to do anymore. The
-  medications aren't helping. I feel so exhausted." Seeking: distress with an implicit need for
-  support, even without a question.</li>
-<li>"I know exactly how you feel - it's so frightening when you can't breathe. You're not alone in
-  this... Hang in there." Providing (emotional support).</li>
-</ul>
-<h2>3. Step 2: type of support (Informational, Emotional, Both)</h2>
-<p>Only for posts coded Seeking or Providing.</p>
-<h3>3a. Seeking: what does this person need from the community?</h3>
-<p><strong>Informational (SIS).</strong> Facts, knowledge, advice or practical guidance: medical information,
-what to do and when, others' experiences to learn from, explanations, recommendations or referrals.
-Test: would a factual answer or practical advice satisfy the need?</p>
-<p><strong>Emotional (SES).</strong> Comfort, reassurance, validation or understanding: fear, worry, frustration,
-exhaustion, feeling overwhelmed; "Am I going to be okay?"; "Am I alone in feeling this?"; distress
-shared without a specific question. Test: would empathy, reassurance or "you're not alone" satisfy
-the primary need?</p>
-<p><strong>Both (SIS + SES).</strong> Only when there is a specific, substantive question and genuine emotional
-distress, both are significant parts of the post, and the poster would benefit from a factual answer
-and from emotional support. Typical shape: distress plus a specific question.</p>
-<p>Rules:</p>
-<ul>
-<li>Emotional words do not make a post Emotional. "I'm worried about my peak flow dropping - should I
-  increase my preventer?" is Informational: the worry is context, the question is the point.</li>
-<li>Questions do not make a post Informational. "Does anyone else feel like their life revolves around
-  asthma?" and "Am I overreacting to be this worried?" are Emotional: they ask for resonance or
-  reassurance, not facts.</li>
-<li>Background versus core. "I'm worried because X happened. What should I do about Y?" is
-  Informational. "I've tried X, Y, Z and nothing works. I'm exhausted and don't know how much more I
-  can take." is Emotional.</li>
-<li>Not Both: "Worried about symptoms, any advice?" is Informational (minimal emotion); "I'm really
-  struggling" with a vague "what should I do?" is Emotional (the question is not specific).</li>
-</ul>
-<p><strong>Deciding in order</strong> (the rules above arranged as steps; nothing new):</p>
+<p>Examples: "Had a flare-up last month, now a cold has gone to my chest. Seeing the asthma nurse tomorrow.
+Sorry, this wasn't really a question!" None. "My asthma has been terrible and the medications aren't
+helping. I'm so fed up, I don't know what to do anymore." Seeking. "Our petition has 22,000 signatures.
+Please sign and spread the word." Providing. "Thank you to my GP for calling me in for my booster. One
+jab in each arm today." None.</p>
+<h2>4. Step 2: type of support</h2>
+<h3>4a. Seeking (Informational, Emotional, Both)</h3>
+<p>An <strong>informational question</strong> is a question or request whose answer would be facts, advice or others'
+experience. Every "has anyone else ...?" question whose object is a thing or a situation counts: a drug,
+device, test, treatment, service, symptom, diagnosis, or "been in a similar situation". A generic "any
+advice?" counts. A <strong>validation question</strong> has a feeling or state of mind as its object ("Does anyone
+else feel exhausted by all this?", "Am I overreacting?").</p>
 <ol>
-<li>Is there a specific question whose answer would be facts, advice, or others' experience of a named
-   thing (a drug, symptom, device, test, service)? If yes, an informational component is present.</li>
-<li>Is distress, or a request for reassurance, a substantial part of the post rather than a passing
-   "a bit worried"? If yes, an emotional component is present. <span style="color:#c0392b">Signals that count, any one of them: an
-   explicit request for reassurance or encouragement ("just need to hear", "give me some
-   encouragement"); a first-person feeling statement with intensity ("so / really / absolutely" + an
-   emotion word, "can't cope", "at my wit's end", "don't know what else to do"); a venting label
-   ("rant", "vent"). Signals that do not count on their own: a single mild emotion word used as a lead-in
-   ("worried", "concerned", "puzzled", "shocked", "nervous") and physical descriptions of symptoms
-   ("struggling with symptoms", "breathing is exhausting").</span></li>
-<li><span style="color:#c0392b">"Has anyone else ..." questions are decided by their object, not their tone: a thing (drug, device,
-   test, treatment, service, symptom, diagnosis) or a situation ("been in a similar situation", "gone
-   through this") is an experience request and counts as informational; a feeling or state of mind
-   ("feel exhausted", "cope", "scared", "alone", "overreacting") is a validation request and counts as
-   emotional. The emotional component is then judged separately under 2.</span></li>
-<li>Both present: Both. Only informational: Informational. Only emotional: Emotional.</li>
-<li>A narrative with no question at all: Emotional only with a first-person feeling statement, a venting
-   label or a reassurance request (see Step 3 in section 4); otherwise go back to Step 1 and code None.</li>
+<li>Is there an informational question?</li>
+<li>Is there an emotional component: a validation question or a strong feeling?</li>
+<li>Both yes: <strong>Both</strong>. Informational only: <strong>Informational</strong>. No informational question:
+   <strong>Emotional</strong> (including posts with no question at all).</li>
 </ol>
-<p>Examples: "My peak flow has dropped from 450 to 350 over the past week. Is this concerning? Should I
-contact my GP or wait?" Informational. "I was diagnosed last month and I'm absolutely terrified... I
-don't know how to live with this." Emotional. "I'm really anxious about my upcoming appointment with
-the respiratory consultant. What questions should I be asking?... I'm scared I'll forget everything."
-Both.</p>
-<h3>3b. Providing: what is this person offering to the community?</h3>
-<p><strong>Informational (PIS).</strong> Facts, knowledge, advice or practical guidance: tips and strategies,
-experience shared in order to inform ("this worked for me"), resources and links, answers,
-suggestions including those in question form ("Have you tried X?"). Test: does it help someone know or
-do something?</p>
-<p><strong>Emotional (PES).</strong> Comfort, empathy, encouragement or validation: "I know how hard this is", "You
-can get through this", "It's normal to feel scared", "You're not alone". Test: is the poster mainly
-addressing someone's emotional needs?</p>
-<p><strong>Both (PIS + PES).</strong> Only when there is substantive practical information and substantive emotional
-support, each a meaningful part of the post, not a polite opener or closer.</p>
-<p>Rules:</p>
-<ul>
-<li>Polite openers and closers are not emotional support: "Sorry to hear that", "Hope this helps",
-  "That's tough", "Good luck!". A post that is advice framed by these phrases is Informational.</li>
-<li>Experience sharing can be either. "When I had X, I tried Y and it worked" informs: Informational.
-  "I went through the same thing - it's really hard but it does get better" comforts: Emotional. Ask
-  whether the purpose is to inform or to comfort.</li>
-<li>Suggestions in question form are Informational: "Have you tried X?", "Why don't you ask your GP about
-  Y?", "Have you thought about Z?".</li>
-<li><span style="color:#c0392b">Emotion in the poster's own story (joy, horror, frustration about their own case) is not emotional
-  support; emotional support is directed at other readers.</span></li>
-</ul>
-<p><strong>Deciding in order</strong>: 1. Is there practical content a reader could act on or learn from (a tip, a
-resource, an experience told to inform, a suggestion in question form)? If yes, informational. 2. Is
-there comfort, empathy or encouragement that forms real content, beyond an opener or closer? If yes,
-emotional. Both: Both.</p>
-<p>Examples: "When my asthma was at its worst, I found that sleeping with the head of my bed elevated
-really helped. Also, keeping a peak flow diary helped me spot patterns." Informational. "I completely
-understand how overwhelming this feels... You're doing better than you think. We're all here for
-you." Emotional. "Oh I really feel for you - that sounds incredibly stressful... What helped me was
-having a written action plan... But also, be kind to yourself." Both.</p>
-<h2>4. Step 3: posts coded None (COM, Ambiguous, or go back)</h2>
-<p>Before confirming None, check the post against the four support categories once more. If any of these
-applies, go back to Step 1 and recode the post as Seeking or Providing:</p>
-<ul>
-<li>a request for advice, information, clarification or others' experiences, including implicit ones
-  ("wondering if...", "not sure whether...") and one-line questions ("Mepolizumab - thoughts?");</li>
-<li>worry, fear, frustration, sadness or feeling overwhelmed, reassurance seeking, or symptoms reported
-  together with distress ("Feel like I keep getting fobbed off by my GP");</li>
-<li>shared information, resources, advice or experience meant to inform others ("FYI: new guidelines");</li>
-<li>comfort, encouragement, empathy or validation directed at others.</li>
-</ul>
-<p>If none applies, choose one of:</p>
-<p><strong>COM (companionship).</strong> Social connection is the main purpose and a reply such as "That's nice!" or
-"Thanks for sharing!" would be appropriate: greetings and introductions without a request; community
-updates that seek no input ("Good news - the results were negative"); thanks without a new question;
-humour and casual conversation. <span style="color:#c0392b">A narrative with no question is Seeking, Emotional only if it carries a
-first-person feeling statement (I feel / I am + an emotion word: fed up, scared, exhausted, overwhelmed,
-struggling, dreading, can't cope, at my wit's end, so worried), labels itself as venting ("sorry for the
-rant"), or asks for reassurance ("just need to hear it gets better"). Otherwise it is COM: an account of
-events, treatments or appointments stays COM even with an apology, an emoji or "hope all goes well".
-Information mentioned in passing inside a thanks post or an introduction is not Providing, and stating
-one's own feelings inside an introduction ("glad to find this site") is not Seeking.</span></p>
-<p><strong>Ambiguous.</strong> The post cannot be classified: fragments without context ("Sharon 49", "Twice a day
-for twenty years"), near-empty posts, spam, garbled text, bare links without context.</p>
-<p>Examples: "Update on sister - ... Dad phoned 111 at 2am for her. Sent to A&amp;E, given steroids." is
-Seeking, Emotional: a worried narrative, not a neutral update. "Good news - I am going to have surgery
-on my nasal polyps!... So roll on Friday." is COM. "Evening - Hi still here in hospital... Fingers
-crossed feeling better not perfect but better." is COM. "Sick again - I have a stinker of a cold...
-I have to consider pulling my son out of nursery." is Seeking, Emotional (frustration, a hard
-decision shared for support).</p>
-<h2>5. Recording</h2>
+<p>Examples: "I'm worried about my peak flow dropping - should I increase my preventer?" Informational.
+"Has anyone been on Nucala? ... I'm a bit nervous beginning it all." Informational (mild word).
+"Anybody else been on this who can give me some encouragement?" Both. "I am so fed up and don't know
+what else to do. Sorry for the rant, but has anyone been in a similar situation?" Both. "Does anyone
+else feel like their life revolves around asthma?" Emotional.</p>
+<h3>4b. Providing (Informational, Emotional, Both)</h3>
+<p><strong>Practical content</strong> is something a reader could learn from or act on: facts, tips, resources, advice,
+suggestions, an experience told so others can use it, an announcement, warning, campaign or petition.
+<strong>Support addressed to readers</strong> is comfort, empathy, encouragement or validation directed at other
+people and forming real content of the post. Not support: formulaic openers and closers ("Sorry to hear
+that", "Hope this helps", "Good luck", "Best wishes", "Keep well", "Hope it works for you"); emotion in
+the poster's own story (their own joy, horror or frustration); a warm tone.</p>
+<ol>
+<li>Is there practical content?</li>
+<li>Is there support addressed to readers?</li>
+<li>Both yes: <strong>Both</strong>. Practical only: <strong>Informational</strong>. No practical content: <strong>Emotional</strong>.</li>
+</ol>
+<h2>5. Step 3: posts coded None (COM or Ambiguous)</h2>
+<p>Before confirming None, check once more whether the post contains a request, is written for others, or
+is an account with a feeling statement; if so, go back to Step 1. Otherwise:</p>
+<p><strong>COM (companionship).</strong> Greetings and introductions, thanks, updates and good news, humour and casual
+conversation, accounts of events without a feeling statement.</p>
+<p><strong>Ambiguous.</strong> A fragment, near-empty, garbled, spam or a bare link, so that no intent can be read.</p>
+<h2>6. Recording</h2>
 <table>
 <thead>
 <tr>
@@ -335,35 +235,33 @@ decision shared for support).</p>
 <tr>
 <td>none_check</td>
 <td>COM, Ambiguous</td>
-<td>intent is None, after the Step 3 check</td>
+<td>intent is None</td>
 </tr>
 <tr>
 <td>secondary</td>
 <td>Seeking, Providing</td>
-<td>optional: the other intent is also substantively present (would pass the Step 1 tests on its own), but is not the primary purpose; leave blank otherwise</td>
+<td>optional: the other intent is also substantively present but not primary</td>
 </tr>
 <tr>
 <td>notes</td>
 <td>free text</td>
-<td>optional; record doubts and borderline rules</td>
+<td>optional; doubts and borderline cases</td>
 </tr>
 </tbody>
 </table>
-<p>The secondary column does not change the label. It records how often the one-intent rule has to choose
-between two substantive intents in this corpus, and is reported separately.</p>
-<p>Final labels follow from the columns: Seeking + Informational = SIS; Seeking + Emotional = SES;
-Seeking + Both = SIS + SES; Providing + Informational = PIS; Providing + Emotional = PES; Providing +
-Both = PIS + PES; None + COM = COM; None + Ambiguous = excluded.</p>
+<p>Final labels: Seeking + Informational = SIS; Seeking + Emotional = SES; Seeking + Both = SIS + SES;
+Providing + Informational = PIS; Providing + Emotional = PES; Providing + Both = PIS + PES; None + COM =
+COM; None + Ambiguous = excluded.</p>
 </div></div>
 
 <script>
 (function () {
   const $ = (s) => document.querySelector(s);
   let posts = [], idx = 0, who = '', store = {};
-  const key = () => 'sstcoding_pilot_' + who;
+  const key = () => 'sstcoding_pilot2_' + who;
   const RULES = {
-    Seeking: '<b>Decide in order.</b><ol style="margin:4px 0 0;padding-left:18px"><li>Is there a <b>specific question</b> whose answer would be facts, advice or others\u2019 experience of a named thing (drug, symptom, device, test)? Yes = informational component. </li><li>Is <b>distress or a request for reassurance</b> a substantial part, not a passing \u201ca bit worried\u201d? Yes = emotional component.</li><li>Both = Both. Only informational = Informational. Only emotional = Emotional.</li><li>No question at all: a distressed narrative = Emotional; a calm update = go back and consider None.</li></ol>',
-    Providing: '<b>Decide in order.</b><ol style="margin:4px 0 0;padding-left:18px"><li>Is there <b>practical content</b> a reader could act on or learn from (tip, resource, experience told to inform, suggestion in question form)? Yes = informational.</li><li>Is there <b>comfort, empathy or encouragement that forms real content</b>, beyond \u201cSorry to hear that\u201d or \u201cGood luck\u201d? Yes = emotional.</li><li>Both = Both.</li></ol>'
+    Seeking: '<b>Decide in order.</b><ol style="margin:4px 0 0;padding-left:18px"><li><b>Informational question?</b> Facts, advice or others\u2019 experience, including \u201chas anyone else\u2026\u201d about a thing or a situation, and a generic \u201cany advice?\u201d.</li><li><b>Emotional component?</b> A validation question about a feeling (\u201cdoes anyone else feel\u2026\u201d, \u201cam I overreacting\u201d), or a strong feeling: \u201cso / really\u201d + emotion word, \u201ccan\u2019t cope\u201d, \u201cdon\u2019t know what else to do\u201d, \u201crant\u201d, a request for reassurance or encouragement. A single mild word (\u201cworried\u201d, \u201ca bit nervous\u201d) does not count.</li><li>Both = Both. Informational only = Informational. No informational question = Emotional.</li></ol>',
+    Providing: '<b>Decide in order.</b><ol style="margin:4px 0 0;padding-left:18px"><li><b>Practical content?</b> Something a reader could learn from or act on, including announcements and campaigns.</li><li><b>Support addressed to readers?</b> Comfort or encouragement as real content. Not: \u201cSorry to hear that\u201d, \u201cHope this helps\u201d, \u201cBest wishes\u201d, \u201cKeep well\u201d, or emotion in the poster\u2019s own story.</li><li>Both = Both. Practical only = Informational. No practical content = Emotional.</li></ol>'
   };
   const DESC = {
     Seeking: { who: '(what does the poster need?)', info: 'Facts, advice, practical guidance, others’ experiences to learn from. Would a factual answer satisfy the need?', emo: 'Comfort, reassurance, validation, understanding. Would empathy or “you’re not alone” satisfy the primary need?' },
