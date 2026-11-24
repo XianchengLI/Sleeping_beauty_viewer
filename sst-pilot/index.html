@@ -132,8 +132,8 @@
 <div id="guide"><div class="panel"><button class="close" id="btn-guide-close">Close and start coding</button>
 <p style="color:var(--muted);font-size:14px">The full coding guide. The rules you need while coding are repeated next to the answer options; come here when a case needs more detail or an example.</p>
 <h1>Coding guide: social support type of forum opening posts</h1>
-<p>Version 0.1 (draft for the first-author trial, 2026-11-17; decision-order blocks added the same day after 14 trial posts; question-object rule, campaign rule and own-story rule added 2026-11-23 after the 20-post trial; narrative rule
-fixed 2026-11-24). Condensed from the classifier prompts in
+<p>Version 0.1 (draft for the first-author trial, 2026-11-17; decision-order blocks added the same day after 14 trial posts; question-object rule, campaign rule and own-story rule added 2026-11-23 after the 20-post trial; narrative rule and
+substantial-distress signals fixed 2026-11-24). Condensed from the classifier prompts in
 <code>lurking/prompts/hierarchical_step*.txt</code>; every definition, indicator and decision rule below is taken
 from those prompts without change, and the examples are theirs. Not yet frozen: wording and examples may
 change after the 20-post trial and the calibration meeting; category boundaries may not. Sentences in
@@ -230,7 +230,13 @@ and from emotional support. Typical shape: distress plus a specific question.</p
 <li>Is there a specific question whose answer would be facts, advice, or others' experience of a named
    thing (a drug, symptom, device, test, service)? If yes, an informational component is present.</li>
 <li>Is distress, or a request for reassurance, a substantial part of the post rather than a passing
-   "a bit worried"? If yes, an emotional component is present.</li>
+   "a bit worried"? If yes, an emotional component is present. <span style="color:#c0392b">Signals that count, any one of them: an
+   explicit request for reassurance or encouragement ("just need to hear", "give me some
+   encouragement"); a first-person feeling statement with intensity ("so / really / absolutely" + an
+   emotion word, "can't cope", "at my wit's end", "don't know what else to do"); a venting label
+   ("rant", "vent"). Signals that do not count on their own: a single mild emotion word used as a lead-in
+   ("worried", "concerned", "puzzled", "shocked", "nervous") and physical descriptions of symptoms
+   ("struggling with symptoms", "breathing is exhausting").</span></li>
 <li><span style="color:#c0392b">"Has anyone else ..." questions are decided by their object, not their tone: a thing (drug, device,
    test, treatment, service, symptom, diagnosis) or a situation ("been in a similar situation", "gone
    through this") is an experience request and counts as informational; a feeling or state of mind
