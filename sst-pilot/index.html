@@ -132,7 +132,8 @@
 <div id="guide"><div class="panel"><button class="close" id="btn-guide-close">Close and start coding</button>
 <p style="color:var(--muted);font-size:14px">The full coding guide. The rules you need while coding are repeated next to the answer options; come here when a case needs more detail or an example.</p>
 <h1>Coding guide: social support type of forum opening posts</h1>
-<p>Version 0.1 (draft for the first-author trial, 2026-11-17; decision-order blocks added the same day after 14 trial posts; question-object rule, campaign rule and own-story rule added 2026-11-23 after the 20-post trial). Condensed from the classifier prompts in
+<p>Version 0.1 (draft for the first-author trial, 2026-11-17; decision-order blocks added the same day after 14 trial posts; question-object rule, campaign rule and own-story rule added 2026-11-23 after the 20-post trial; narrative rule
+fixed 2026-11-24). Condensed from the classifier prompts in
 <code>lurking/prompts/hierarchical_step*.txt</code>; every definition, indicator and decision rule below is taken
 from those prompts without change, and the examples are theirs. Not yet frozen: wording and examples may
 change after the 20-post trial and the calibration meeting; category boundaries may not. Sentences in
@@ -236,8 +237,8 @@ and from emotional support. Typical shape: distress plus a specific question.</p
    ("feel exhausted", "cope", "scared", "alone", "overreacting") is a validation request and counts as
    emotional. The emotional component is then judged separately under 2.</span></li>
 <li>Both present: Both. Only informational: Informational. Only emotional: Emotional.</li>
-<li>A narrative with no question at all: with distress, Emotional; a calm update, go back to Step 1 and
-   consider None.</li>
+<li>A narrative with no question at all: Emotional only with a first-person feeling statement, a venting
+   label or a reassurance request (see Step 3 in section 4); otherwise go back to Step 1 and code None.</li>
 </ol>
 <p>Examples: "My peak flow has dropped from 450 to 350 over the past week. Is this concerning? Should I
 contact my GP or wait?" Informational. "I was diagnosed last month and I'm absolutely terrified... I
@@ -290,10 +291,13 @@ applies, go back to Step 1 and recode the post as Seeking or Providing:</p>
 <p><strong>COM (companionship).</strong> Social connection is the main purpose and a reply such as "That's nice!" or
 "Thanks for sharing!" would be appropriate: greetings and introductions without a request; community
 updates that seek no input ("Good news - the results were negative"); thanks without a new question;
-humour and casual conversation. <span style="color:#c0392b">A narrative of symptoms or treatment with no question is COM when it
-is calm or hopeful and Seeking, Emotional when it expresses worry, frustration or unease. Information
-mentioned in passing inside a thanks post or an introduction is not Providing, and stating one's own
-feelings inside an introduction ("glad to find this site") is not Seeking.</span></p>
+humour and casual conversation. <span style="color:#c0392b">A narrative with no question is Seeking, Emotional only if it carries a
+first-person feeling statement (I feel / I am + an emotion word: fed up, scared, exhausted, overwhelmed,
+struggling, dreading, can't cope, at my wit's end, so worried), labels itself as venting ("sorry for the
+rant"), or asks for reassurance ("just need to hear it gets better"). Otherwise it is COM: an account of
+events, treatments or appointments stays COM even with an apology, an emoji or "hope all goes well".
+Information mentioned in passing inside a thanks post or an introduction is not Providing, and stating
+one's own feelings inside an introduction ("glad to find this site") is not Seeking.</span></p>
 <p><strong>Ambiguous.</strong> The post cannot be classified: fragments without context ("Sharon 49", "Twice a day
 for twenty years"), near-empty posts, spam, garbled text, bare links without context.</p>
 <p>Examples: "Update on sister - ... Dad phoned 111 at 2am for her. Sent to A&amp;E, given steroids." is
