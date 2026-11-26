@@ -29,10 +29,10 @@ details{margin-top:8px}summary{cursor:pointer;color:var(--accent)}
 table{border-collapse:collapse;font-size:15px}td,th{border:1px solid var(--line);padding:4px 10px;text-align:left}
 .target{font-weight:600}
 </style></head><body>
-<header><h1>Calibration meeting: 20 trial posts</h1><span id="filters"></span></header>
-<section id="gate"><h2 style="margin-top:0">Calibration meeting</h2><p>The 20 trial posts with everyone's labels. Enter the meeting password.</p>
+<header><h1>Calibration meeting: 20 trial posts</h1><span style="flex:1"></span><button id="toggle">Show all labels</button></header>
+<section id="gate"><h2 style="margin-top:0">Calibration meeting</h2><p>The 20 trial posts. Labels stay hidden until you open them. Enter the meeting password.</p>
 <input id="pw" type="password" autocomplete="off"><div id="err" style="color:#b4541a;min-height:1.4em"></div><button id="go" class="on">Open</button></section>
-<main><div class="card" id="summary"></div><div id="list"></div></main>
+<main><div id="list"></div></main>
 <script>
 (function(){
 const $=s=>document.querySelector(s); let items=[], filt='all';
@@ -41,22 +41,17 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
 function dec(enc,pw){const k=CryptoJS.PBKDF2(pw,CryptoJS.enc.Base64.parse(enc.salt),{keySize:8,iterations:enc.iterations,hasher:CryptoJS.algo.SHA256});
  const d=CryptoJS.AES.decrypt({ciphertext:CryptoJS.enc.Base64.parse(enc.ciphertext)},k,{iv:CryptoJS.enc.Base64.parse(enc.iv),mode:CryptoJS.mode.CBC,padding:CryptoJS.pad.Pkcs7});return JSON.parse(d.toString(CryptoJS.enc.Utf8))}
 async function open(){try{const enc=await(await fetch('data/meeting.encrypted',{cache:'no-store'})).json();items=dec(enc,$('#pw').value).items}catch(e){$('#err').textContent='Wrong password, or the data could not be loaded.';return}
- $('#gate').style.display='none';$('main').style.display='block';filters();summary();render()}
-function filters(){const c={all:items.length};items.forEach(x=>c[x.status]=(c[x.status]||0)+1);
- $('#filters').innerHTML=['all','open','coder','model','agreed'].map(k=>`<button data-k="${k}" class="${k===filt?'on':''}">${k==='all'?'All':NAMES[k]} (${c[k]||0})</button>`).join(' ');
- document.querySelectorAll('#filters button').forEach(b=>b.onclick=()=>{filt=b.dataset.k;filters();render()})}
-function summary(){const hum=['XL round 1','HEW','ADS'];const pair=(a,b)=>items.filter(x=>x.labels[a]===x.labels[b]).length;
- $('#summary').innerHTML=`<h2>Where we stand</h2><p>Round 1, exact label agreement out of 20: XL and HEW ${pair('XL round 1','HEW')}, XL and ADS ${pair('XL round 1','ADS')}, HEW and ADS ${pair('HEW','ADS')}. Every disagreement involves either the emotional component or the None/COM line; plain informational posts were coded the same by everyone.</p>
- <p><b>To decide today</b> (orange cards): what a "has anyone..." question asks for (T03); whether one mild emotion word counts (T15); situation questions with strong feeling (T18); narratives without a question (T02); campaigns and announcements (T20, T19, T01).</p>
- <p><b>Then</b>: purple cards are cases where a rule already exists and one of us departed from it; blue cards are cases where we agree and the paper's classifier does not. Cells in red differ from the label the draft rules give. After the meeting the guide is frozen and everyone codes these 20 once more.</p>`}
-function render(){ $('#list').innerHTML=items.filter(x=>filt==='all'||x.status===filt).map(x=>{
+ $('#gate').style.display='none';$('main').style.display='block';render()}
+function render(){ items.sort((a,b)=>a.id<b.id?-1:1); $('#list').innerHTML=items.map(x=>{
  const tgt=x.target, set=tgt?tgt.replace(' (proposed)','').split(' or '):null;
  const labs=Object.entries(x.labels).map(([w,v],i)=>`<div class="lab ${set&&!set.includes(v)?'diff':''} ${i>=4?'sep':''}"><div class="who">${w}</div><div class="v">${v}</div></div>`).join('');
  const notes=Object.entries(x.notes).map(([w,n])=>`<div class="note"><b>${w} note:</b> ${esc(n)}</div>`).join('');
- return `<div class="card ${x.status}"><span class="badge">${NAMES[x.status]}</span> <span style="color:var(--muted)">${x.id}</span><h2>${esc(x.title)}</h2>
- <div><b>${esc(x.head)}</b>${tgt?` <span class="target">Draft rules give: ${esc(tgt)}</span>`:''}</div>
- ${x.text?`<div class="issue">${esc(x.text)}</div>`:''}<div class="labels">${labs}</div>${notes}
- <details ${x.status==='open'?'open':''}><summary>Post text (${x.body.split(/\s+/).length} words)</summary><div class="post">${esc(x.body)}</div></details></div>`}).join('')}
-$('#go').onclick=open;$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')open()});
+ return `<div class="card"><span style="color:var(--muted)">${x.id} \u00b7 ${x.body.split(/\s+/).length} words</span><h2>${esc(x.title)}</h2>
+ <div class="post">${esc(x.body)}</div>
+ <details class="rev"><summary>Labels and discussion</summary><div class="${x.status}" style="border-left:0;margin-top:8px"><span class="badge">${NAMES[x.status]}</span>
+ <div style="margin-top:6px"><b>${esc(x.head)}</b>${tgt?` <span class="target">Draft rules give: ${esc(tgt)}</span>`:''}</div>
+ <div class="labels">${labs}</div>${x.text?`<div class="issue">${esc(x.text)}</div>`:''}${notes}</div></details></div>`}).join('')}
+let shown=false;
+$('#go').onclick=open;$('#toggle').onclick=()=>{shown=!shown;document.querySelectorAll('details.rev').forEach(d=>d.open=shown);$('#toggle').textContent=shown?'Hide all labels':'Show all labels'};$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')open()});
 })();
 </script></body></html>
