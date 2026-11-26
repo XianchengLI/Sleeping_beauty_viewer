@@ -28,11 +28,24 @@ details{margin-top:8px}summary{cursor:pointer;color:var(--accent)}
 .note{font-size:14px;color:var(--muted);margin-top:6px}
 table{border-collapse:collapse;font-size:15px}td,th{border:1px solid var(--line);padding:4px 10px;text-align:left}
 .target{font-weight:600}
+.topic{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+.topic h2{font-size:21px;margin:0 0 8px}
+.q{font-size:17px;margin:0 0 12px}
+.opt{border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:6px 0}
+.opt.prop{border-color:#bfe3c8;background:#f1f9f3}
+.opt .tag{font-size:12px;font-weight:600;color:#2a8a4a;margin-left:6px}
+textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:8px;padding:8px;min-height:54px;margin-top:4px}
+h3{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:20px 0 8px}
+.pc{border:1px solid var(--line);border-left:5px solid #c9d4e8;border-radius:8px;padding:12px 14px;margin:10px 0}
+.pc.focus{border-left-color:var(--focus);background:var(--focusbg)}
+.pc .hd{font-size:13px;color:var(--muted)}.pc h4{margin:2px 0 6px;font-size:17px}
+.why{font-size:15px;margin-bottom:8px}
+.tabs button{border-radius:8px}
 </style></head><body>
-<header><h1>Calibration meeting: 20 trial posts</h1><span style="flex:1"></span><button id="toggle">Show all labels</button></header>
+<header><h1>Calibration meeting</h1><span class="tabs"><button id="tab-posts" class="on">All 20 posts</button> <button id="tab-rules">Rules to decide</button></span><span id="nav"></span><span style="flex:1"></span><button id="toggle">Show all labels</button></header>
 <section id="gate"><h2 style="margin-top:0">Calibration meeting</h2><p>The 20 trial posts. Labels stay hidden until you open them. Enter the meeting password.</p>
 <input id="pw" type="password" autocomplete="off"><div id="err" style="color:#b4541a;min-height:1.4em"></div><button id="go" class="on">Open</button></section>
-<main><div id="list"></div></main>
+<main><div id="list"></div><div id="rules" style="display:none"></div></main>
 <script>
 (function(){
 const $=s=>document.querySelector(s); let items=[], filt='all';
@@ -40,8 +53,8 @@ const NAMES={open:'To decide',coder:'Rule exists, one coder differs',model:'Code
 function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
 function dec(enc,pw){const k=CryptoJS.PBKDF2(pw,CryptoJS.enc.Base64.parse(enc.salt),{keySize:8,iterations:enc.iterations,hasher:CryptoJS.algo.SHA256});
  const d=CryptoJS.AES.decrypt({ciphertext:CryptoJS.enc.Base64.parse(enc.ciphertext)},k,{iv:CryptoJS.enc.Base64.parse(enc.iv),mode:CryptoJS.mode.CBC,padding:CryptoJS.pad.Pkcs7});return JSON.parse(d.toString(CryptoJS.enc.Utf8))}
-async function open(){try{const enc=await(await fetch('data/meeting.encrypted',{cache:'no-store'})).json();items=dec(enc,$('#pw').value).items}catch(e){$('#err').textContent='Wrong password, or the data could not be loaded.';return}
- $('#gate').style.display='none';$('main').style.display='block';render()}
+async function open(){try{const enc=await(await fetch('data/meeting.encrypted',{cache:'no-store'})).json();const d=dec(enc,$('#pw').value);items=d.items;topics=d.topics}catch(e){$('#err').textContent='Wrong password, or the data could not be loaded.';return}
+ $('#gate').style.display='none';$('main').style.display='block';render();renderRules()}
 function render(){ items.sort((a,b)=>a.id<b.id?-1:1); $('#list').innerHTML=items.map(x=>{
  const tgt=x.target, set=tgt?tgt.replace(' (proposed)','').split(' or '):null;
  const labs=Object.entries(x.labels).map(([w,v],i)=>`<div class="lab ${set&&!set.includes(v)?'diff':''} ${i>=4?'sep':''}"><div class="who">${w}</div><div class="v">${v}</div></div>`).join('');
@@ -52,6 +65,26 @@ function render(){ items.sort((a,b)=>a.id<b.id?-1:1); $('#list').innerHTML=items
  <div style="margin-top:6px"><b>${esc(x.head)}</b>${tgt?` <span class="target">Draft rules give: ${esc(tgt)}</span>`:''}</div>
  <div class="labels">${labs}</div>${x.text?`<div class="issue">${esc(x.text)}</div>`:''}${notes}</div></details></div>`}).join('')}
 let shown=false;
-$('#go').onclick=open;$('#toggle').onclick=()=>{shown=!shown;document.querySelectorAll('details.rev').forEach(d=>d.open=shown);$('#toggle').textContent=shown?'Hide all labels':'Show all labels'};$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')open()});
+let topics=[], cur=0;
+function get(n){try{return localStorage.getItem('sst_decision_'+n)||''}catch(e){return ''}}
+function set(n,v){try{localStorage.setItem('sst_decision_'+n,v)}catch(e){}}
+function pcard(p){const labs=Object.entries(p.labels).map(([w,v],i)=>`<div class="lab ${i>=4?'sep':''}"><div class="who">${w}</div><div class="v">${v}</div></div>`).join('');
+ return `<div class="pc ${p.role}"><div style="font-size:13px;color:var(--muted)">${p.id} \u00b7 ${p.role==='focus'?'the post in question':'for comparison'} \u00b7 ${p.body.split(/\s+/).length} words</div><h4 style="margin:2px 0 6px;font-size:17px">${esc(p.title)}</h4>
+ <div class="why">${esc(p.why)}</div><div class="post" style="background:#fff;border:1px solid var(--line);border-radius:8px">${esc(p.body)}</div><details class="rev" ${shown?'open':''}><summary>Labels</summary><div class="labels">${labs}</div></details></div>`}
+function renderRules(){
+ $('#nav').innerHTML=tab==='rules'?topics.map((t,i)=>`<button data-i="${i}" class="${i===cur?'on':''}">${t.n}</button>`).join(' '):'';
+ document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{cur=+b.dataset.i;renderRules();window.scrollTo(0,0)});
+ const t=topics[cur];
+ $('#rules').innerHTML=`<div class="topic"><div style="color:var(--muted)">Question ${t.n} of ${topics.length}</div><h2>${esc(t.title)}</h2><p class="q">${esc(t.question)}</p>
+ ${t.options.map(o=>`<div class="opt ${o[0]===t.proposal?'prop':''}">${esc(o)}${o[0]===t.proposal?'<span class="tag">proposed</span>':''}</div>`).join('')}
+ <h3>Decision</h3><textarea id="dec" placeholder="What we agreed, in one or two sentences">${esc(get(t.n))}</textarea>
+ <h3>Posts</h3>${t.posts.map(pcard).join('')}
+ <div style="display:flex;gap:8px;margin-top:14px"><button id="prev" ${cur===0?'disabled':''}>Previous question</button><button id="next" class="on" ${cur===topics.length-1?'disabled':''}>Next question</button></div></div>`;
+ $('#dec').addEventListener('input',e=>set(t.n,e.target.value));
+ $('#prev').onclick=()=>{if(cur>0){cur--;renderRules();window.scrollTo(0,0)}};$('#next').onclick=()=>{if(cur<topics.length-1){cur++;renderRules();window.scrollTo(0,0)}}}
+let tab='posts';
+function show(t){tab=t;$('#list').style.display=t==='posts'?'block':'none';$('#rules').style.display=t==='rules'?'block':'none';$('#tab-posts').classList.toggle('on',t==='posts');$('#tab-rules').classList.toggle('on',t==='rules');renderRules();window.scrollTo(0,0)}
+
+$('#go').onclick=open;$('#tab-posts').onclick=()=>show('posts');$('#tab-rules').onclick=()=>show('rules');$('#toggle').onclick=()=>{shown=!shown;document.querySelectorAll('details.rev').forEach(d=>d.open=shown);$('#toggle').textContent=shown?'Hide all labels':'Show all labels'};$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')open()});
 })();
 </script></body></html>
