@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rules To Decide</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2330;--muted:#5b6472;--line:#dde2ea;--accent:#2457a6;--focus:#b4541a;--focusbg:#fdf3e7}
+*{box-sizing:border-box}body{margin:0;font:16px/1.55 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px;position:sticky;top:0;z-index:5;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+header h1{font-size:18px;margin:0 8px 0 0}
+button{font:inherit;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 14px;cursor:pointer}
+button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+#gate{max-width:480px;margin:60px auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:26px}
+#gate input{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;margin:8px 0}
+main{display:none;max-width:1000px;margin:0 auto;padding:16px}
+.topic{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px}
+.topic h2{font-size:21px;margin:0 0 8px}
+.q{font-size:17px;margin:0 0 12px}
+.opt{border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:6px 0}
+.opt.prop{border-color:#bfe3c8;background:#f1f9f3}
+.opt .tag{font-size:12px;font-weight:600;color:#2a8a4a;margin-left:6px}
+textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:8px;padding:8px;min-height:54px;margin-top:4px}
+h3{font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:20px 0 8px}
+.pc{border:1px solid var(--line);border-left:5px solid #c9d4e8;border-radius:8px;padding:12px 14px;margin:10px 0}
+.pc.focus{border-left-color:var(--focus);background:var(--focusbg)}
+.pc .hd{font-size:13px;color:var(--muted)}.pc h4{margin:2px 0 6px;font-size:17px}
+.why{font-size:15px;margin-bottom:8px}
+.post{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+details{margin-top:8px}summary{cursor:pointer;color:var(--accent);font-size:15px}
+.labels{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.lab{border:1px solid var(--line);border-radius:8px;padding:5px 10px;min-width:112px;background:#fff}.lab .who{font-size:12px;color:var(--muted)}.lab .v{font-weight:600}.lab.sep{border-style:dashed}
+</style></head><body>
+<header><h1>Rules to decide</h1><span id="nav"></span><span style="flex:1"></span><button id="toggle">Show all labels</button></header>
+<section id="gate"><h2 style="margin-top:0">Rules to decide</h2><p>The five open questions from the 20-post trial, each with its posts in full. Enter the meeting password.</p>
+<input id="pw" type="password" autocomplete="off"><div id="err" style="color:#b4541a;min-height:1.4em"></div><button id="go" class="on">Open</button></section>
+<main id="main"></main>
+<script>
+(function(){
+const $=s=>document.querySelector(s); let topics=[], cur=0, shown=false;
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function dec(enc,pw){const k=CryptoJS.PBKDF2(pw,CryptoJS.enc.Base64.parse(enc.salt),{keySize:8,iterations:enc.iterations,hasher:CryptoJS.algo.SHA256});
+ const d=CryptoJS.AES.decrypt({ciphertext:CryptoJS.enc.Base64.parse(enc.ciphertext)},k,{iv:CryptoJS.enc.Base64.parse(enc.iv),mode:CryptoJS.mode.CBC,padding:CryptoJS.pad.Pkcs7});return JSON.parse(d.toString(CryptoJS.enc.Utf8))}
+function get(n){try{return localStorage.getItem('sst_decision_'+n)||''}catch(e){return ''}}
+function set(n,v){try{localStorage.setItem('sst_decision_'+n,v)}catch(e){}}
+async function open(){try{const enc=await(await fetch('data/topics.encrypted',{cache:'no-store'})).json();topics=dec(enc,$('#pw').value).topics}catch(e){$('#err').textContent='Wrong password, or the data could not be loaded.';return}
+ $('#gate').style.display='none';$('#main').style.display='block';render()}
+function pcard(p){const labs=Object.entries(p.labels).map(([w,v],i)=>`<div class="lab ${i>=4?'sep':''}"><div class="who">${w}</div><div class="v">${v}</div></div>`).join('');
+ return `<div class="pc ${p.role}"><div class="hd">${p.id} · ${p.role==='focus'?'the post in question':'for comparison'} · ${p.body.split(/\s+/).length} words</div><h4>${esc(p.title)}</h4>
+ <div class="why">${esc(p.why)}</div><div class="post">${esc(p.body)}</div><details class="rev" ${shown?'open':''}><summary>Labels</summary><div class="labels">${labs}</div></details></div>`}
+function render(){
+ $('#nav').innerHTML=topics.map((t,i)=>`<button data-i="${i}" class="${i===cur?'on':''}">${t.n}</button>`).join(' ');
+ document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{cur=+b.dataset.i;render();window.scrollTo(0,0)});
+ const t=topics[cur];
+ $('#main').innerHTML=`<div class="topic"><div style="color:var(--muted)">Question ${t.n} of ${topics.length}</div><h2>${esc(t.title)}</h2><p class="q">${esc(t.question)}</p>
+ ${t.options.map(o=>`<div class="opt ${o[0]===t.proposal?'prop':''}">${esc(o)}${o[0]===t.proposal?'<span class="tag">proposed</span>':''}</div>`).join('')}
+ <h3>Decision</h3><textarea id="dec" placeholder="What we agreed, in one or two sentences">${esc(get(t.n))}</textarea>
+ <h3>Posts</h3>${t.posts.map(pcard).join('')}
+ <div style="display:flex;gap:8px;margin-top:14px"><button id="prev" ${cur===0?'disabled':''}>Previous question</button><button id="next" class="on" ${cur===topics.length-1?'disabled':''}>Next question</button></div></div>`;
+ $('#dec').addEventListener('input',e=>set(t.n,e.target.value));
+ $('#prev').onclick=()=>{if(cur>0){cur--;render();window.scrollTo(0,0)}};$('#next').onclick=()=>{if(cur<topics.length-1){cur++;render();window.scrollTo(0,0)}}}
+$('#go').onclick=open;$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')open()});
+$('#toggle').onclick=()=>{shown=!shown;document.querySelectorAll('details.rev').forEach(d=>d.open=shown);$('#toggle').textContent=shown?'Hide all labels':'Show all labels'};
+})();
+</script></body></html>
