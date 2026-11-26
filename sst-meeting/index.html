@@ -76,7 +76,7 @@ function renderRules(){
  document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{cur=+b.dataset.i;renderRules();window.scrollTo(0,0)});
  const t=topics[cur];
  $('#rules').innerHTML=`<div class="topic"><div style="color:var(--muted)">Question ${t.n} of ${topics.length}</div><h2>${esc(t.title)}</h2><p class="q">${esc(t.question)}</p>
- ${t.options.map(o=>`<div class="opt ${o[0]===t.proposal?'prop':''}">${esc(o)}${o[0]===t.proposal?'<span class="tag">proposed</span>':''}</div>`).join('')}
+ <details><summary>Options</summary>${t.options.map(o=>`<div class="opt ${o[0]===t.proposal?'prop':''}">${esc(o)}${o[0]===t.proposal?'<span class="tag">proposed</span>':''}</div>`).join('')}</details>
  <h3>Decision</h3><textarea id="dec" placeholder="What we agreed, in one or two sentences">${esc(get(t.n))}</textarea>
  <h3>Posts</h3>${t.posts.map(pcard).join('')}
  <div style="display:flex;gap:8px;margin-top:14px"><button id="prev" ${cur===0?'disabled':''}>Previous question</button><button id="next" class="on" ${cur===topics.length-1?'disabled':''}>Next question</button></div></div>`;
