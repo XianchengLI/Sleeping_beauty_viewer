@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calibration Meeting</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2330;--muted:#5b6472;--line:#dde2ea;--accent:#2457a6;--open:#b4541a;--openbg:#fdf3e7;--coder:#7a4fa3;--coderbg:#f3ecf9;--model:#2457a6;--modelbg:#eaf1fb;--ok:#2a8a4a;--okbg:#e6f4ea;--diff:#fbe3e0}
+*{box-sizing:border-box}body{margin:0;font:16px/1.55 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px;position:sticky;top:0;z-index:5;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+header h1{font-size:18px;margin:0 8px 0 0}
+button{font:inherit;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 14px;cursor:pointer}
+button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+#gate{max-width:480px;margin:60px auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:26px}
+#gate input{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;margin:8px 0}
+main{display:none;max-width:1100px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:0 0 16px}
+.card h2{font-size:19px;margin:4px 0 8px}
+.badge{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600}
+.open .badge{background:var(--openbg);color:var(--open)}.coder .badge{background:var(--coderbg);color:var(--coder)}.model .badge{background:var(--modelbg);color:var(--model)}.agreed .badge{background:var(--okbg);color:var(--ok)}
+.open{border-left:5px solid var(--open)}.coder{border-left:5px solid var(--coder)}.model{border-left:5px solid var(--model)}.agreed{border-left:5px solid var(--ok)}
+.issue{background:#fbf8f1;border:1px solid #efe3c6;border-radius:8px;padding:10px 12px;margin:10px 0;font-size:15px}
+.labels{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.lab{border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-width:118px}
+.lab .who{font-size:12px;color:var(--muted)}.lab .v{font-weight:600}
+.lab.diff{background:var(--diff);border-color:#efb8b1}
+.lab.sep{border-style:dashed}
+details{margin-top:8px}summary{cursor:pointer;color:var(--accent)}
+.post{white-space:pre-wrap;background:#fafbfd;border-left:4px solid #c9d4e8;padding:12px 14px;border-radius:0 8px 8px 0;margin-top:8px}
+.note{font-size:14px;color:var(--muted);margin-top:6px}
+table{border-collapse:collapse;font-size:15px}td,th{border:1px solid var(--line);padding:4px 10px;text-align:left}
+.target{font-weight:600}
+</style></head><body>
+<header><h1>Calibration meeting: 20 trial posts</h1><span id="filters"></span></header>
+<section id="gate"><h2 style="margin-top:0">Calibration meeting</h2><p>The 20 trial posts with everyone's labels. Enter the meeting password.</p>
+<input id="pw" type="password" autocomplete="off"><div id="err" style="color:#b4541a;min-height:1.4em"></div><button id="go" class="on">Open</button></section>
+<main><div class="card" id="summary"></div><div id="list"></div></main>
+<script>
+(function(){
+const $=s=>document.querySelector(s); let items=[], filt='all';
+const NAMES={open:'To decide',coder:'Rule exists, one coder differs',model:'Coders agree, classifier differs',agreed:'Agreed'};
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function dec(enc,pw){const k=CryptoJS.PBKDF2(pw,CryptoJS.enc.Base64.parse(enc.salt),{keySize:8,iterations:enc.iterations,hasher:CryptoJS.algo.SHA256});
+ const d=CryptoJS.AES.decrypt({ciphertext:CryptoJS.enc.Base64.parse(enc.ciphertext)},k,{iv:CryptoJS.enc.Base64.parse(enc.iv),mode:CryptoJS.mode.CBC,padding:CryptoJS.pad.Pkcs7});return JSON.parse(d.toString(CryptoJS.enc.Utf8))}
+async function open(){try{const enc=await(await fetch('data/meeting.encrypted',{cache:'no-store'})).json();items=dec(enc,$('#pw').value).items}catch(e){$('#err').textContent='Wrong password, or the data could not be loaded.';return}
+ $('#gate').style.display='none';$('main').style.display='block';filters();summary();render()}
+function filters(){const c={all:items.length};items.forEach(x=>c[x.status]=(c[x.status]||0)+1);
+ $('#filters').innerHTML=['all','open','coder','model','agreed'].map(k=>`<button data-k="${k}" class="${k===filt?'on':''}">${k==='all'?'All':NAMES[k]} (${c[k]||0})</button>`).join(' ');
+ document.querySelectorAll('#filters button').forEach(b=>b.onclick=()=>{filt=b.dataset.k;filters();render()})}
+function summary(){const hum=['XL round 1','HEW','ADS'];const pair=(a,b)=>items.filter(x=>x.labels[a]===x.labels[b]).length;
+ $('#summary').innerHTML=`<h2>Where we stand</h2><p>Round 1, exact label agreement out of 20: XL and HEW ${pair('XL round 1','HEW')}, XL and ADS ${pair('XL round 1','ADS')}, HEW and ADS ${pair('HEW','ADS')}. Every disagreement involves either the emotional component or the None/COM line; plain informational posts were coded the same by everyone.</p>
+ <p><b>To decide today</b> (orange cards): what a "has anyone..." question asks for (T03); whether one mild emotion word counts (T15); situation questions with strong feeling (T18); narratives without a question (T02); campaigns and announcements (T20, T19, T01).</p>
+ <p><b>Then</b>: purple cards are cases where a rule already exists and one of us departed from it; blue cards are cases where we agree and the paper's classifier does not. Cells in red differ from the label the draft rules give. After the meeting the guide is frozen and everyone codes these 20 once more.</p>`}
+function render(){ $('#list').innerHTML=items.filter(x=>filt==='all'||x.status===filt).map(x=>{
+ const tgt=x.target, set=tgt?tgt.replace(' (proposed)','').split(' or '):null;
+ const labs=Object.entries(x.labels).map(([w,v],i)=>`<div class="lab ${set&&!set.includes(v)?'diff':''} ${i>=4?'sep':''}"><div class="who">${w}</div><div class="v">${v}</div></div>`).join('');
+ const notes=Object.entries(x.notes).map(([w,n])=>`<div class="note"><b>${w} note:</b> ${esc(n)}</div>`).join('');
+ return `<div class="card ${x.status}"><span class="badge">${NAMES[x.status]}</span> <span style="color:var(--muted)">${x.id}</span><h2>${esc(x.title)}</h2>
+ <div><b>${esc(x.head)}</b>${tgt?` <span class="target">Draft rules give: ${esc(tgt)}</span>`:''}</div>
+ ${x.text?`<div class="issue">${esc(x.text)}</div>`:''}<div class="labels">${labs}</div>${notes}
+ <details ${x.status==='open'?'open':''}><summary>Post text (${x.body.split(/\s+/).length} words)</summary><div class="post">${esc(x.body)}</div></details></div>`}).join('')}
+$('#go').onclick=open;$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')open()});
+})();
+</script></body></html>
